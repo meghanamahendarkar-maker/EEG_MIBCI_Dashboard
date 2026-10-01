@@ -304,6 +304,7 @@ st.markdown("""
 
 import joblib
 import torch
+import time
 from src.data.loader import PhysioNetLoader
 from src.data.preprocessor import EEGPreprocessor
 import os
@@ -322,6 +323,8 @@ def render_diagnostic_log(text):
     </div>
     """
     return html
+
+
 
 @st.cache_resource
 def load_or_train_demo_models():
@@ -606,12 +609,12 @@ This paradigm induces prominent, frequency-specific neurophysiological phenomena
 
 <div class="overview-card" style="margin-top: 10px;">
 <strong>Event-Related Desynchronization (ERD):</strong><br>
-During the imagination phase, local neural populations become highly active and desynchronized. This manifests as a localized decrease in power within the <span style="color:#64B5F6;">$\\\mu$ (8–12 Hz)</span> and lower <span style="color:#64B5F6;">$\\\beta$ (13–30 Hz)</span> bands over the contralateral motor cortex.
+During the imagination phase, local neural populations become highly active and desynchronized. This manifests as a localized decrease in power within the <span style="color:#64B5F6;">$\\\\mu$ (8–12 Hz)</span> and lower <span style="color:#64B5F6;">$\\\\beta$ (13–30 Hz)</span> bands over the contralateral motor cortex.
 </div>
 
 <div class="overview-card" style="border-left-color: #81C784;">
 <strong>Event-Related Synchronization (ERS):</strong><br>
-After the imagery ceases, a subsequent rebound (increase) in power occurs in the $\\\beta$ band, representing cortical idling, neural network resetting, or active inhibition of the motor command.
+After the imagery ceases, a subsequent rebound (increase) in power occurs in the $\\\\beta$ band, representing cortical idling, neural network resetting, or active inhibition of the motor command.
 </div>
 
 By capturing these transient dynamics across 64 high-resolution electrodes, this system achieves highly robust real-time intent decoding, crucial for neuroprosthetics, wheelchair control, and stroke rehabilitation therapies.
@@ -684,8 +687,8 @@ Translating raw EEG brainwaves into commands requires extracting patterns. Tradi
 <span class="overview-highlight" style="color: #F48FB1;">Advanced Signal Preprocessing Pipeline</span><br>
 Before entering the models, the raw continuous EEG data undergoes strict filtering:
 <ul class="spec-list" style="margin-top: 10px;">
-<li><strong>Bandpass Filtering (8–30 Hz):</strong> A zero-phase Butterworth filter isolates the $\\\mu$ and $\\\beta$ bands, discarding low-frequency drift and high-frequency muscle artifacts (EMG).</li>
-<li><strong>Z-Score Standardization:</strong> Each channel within a trial is independently normalized to zero mean and unit variance ($\\\mu=0, \\sigma=1$). This stabilizes the gradient descent for the CNN-LSTM and equalizes the feature variance for MiniRocket.</li>
+<li><strong>Bandpass Filtering (8–30 Hz):</strong> A zero-phase Butterworth filter isolates the $\\\\mu$ and $\\\\beta$ bands, discarding low-frequency drift and high-frequency muscle artifacts (EMG).</li>
+<li><strong>Z-Score Standardization:</strong> Each channel within a trial is independently normalized to zero mean and unit variance ($\\\\mu=0, \\sigma=1$). This stabilizes the gradient descent for the CNN-LSTM and equalizes the feature variance for MiniRocket.</li>
 </ul>
 </div>
 """, unsafe_allow_html=True)
@@ -710,19 +713,19 @@ MiniRocket computes convolutional features at a fraction of the cost of deep net
 <strong style="color: #CE93D8; font-size: 18px; display: block; margin-bottom: 10px;">Kernel Formulation:</strong>
 <ul style="color:#DFB6B2; font-size: 16px; line-height: 1.8; margin-bottom: 25px;">
 <li>Generates $10,000$ non-trainable, random convolutional kernels.</li>
-<li>Kernel lengths fixed to 9, using pre-defined weights $\\\in \\{-1, 2\\}$.</li>
+<li>Kernel lengths fixed to 9, using pre-defined weights $\\\\in \\{-1, 2\\}$.</li>
 <li>Exponentially spaced dilations to capture multiple receptive fields.</li>
 </ul>
 
 <strong style="color: #CE93D8; font-size: 18px; display: block; margin-bottom: 10px;">Feature Pooling (PPV):</strong>
 <ul style="color:#DFB6B2; font-size: 16px; line-height: 1.8; margin-bottom: 25px;">
 <li>Extracts only the Proportion of Positive Values (PPV) per feature map.</li>
-<li>Collapses the time dimension, yielding a sparse vector $\\mathbf{x} \\in \\mathbb{R}^{10000}$.</li>
+<li>Collapses the time dimension, yielding a sparse vector $\\\mathbf{x} \\\in \\mathbb{R}^{10000}$.</li>
 </ul>
 
 <strong style="color: #CE93D8; font-size: 18px; display: block; margin-bottom: 10px;">Classifier: L2 Regularized Ridge</strong>
 <ul style="color:#DFB6B2; font-size: 16px; line-height: 1.8; margin-bottom: 0;">
-<li>Objective: $\\\min_{\\\mathbf{w}} ||\\\mathbf{Xw} - \\\mathbf{y}||_2^2 + \\alpha ||\\\mathbf{w}||_2^2$</li>
+<li>Objective: $\\\min_{\\\\mathbf{w}} ||\\\\mathbf{Xw} - \\\\mathbf{y}||_2^2 + \\\alpha ||\\\\mathbf{w}||_2^2$</li>
 <li>Solved analytically via Cholesky decomposition.</li>
 </ul>
 </div>
@@ -743,14 +746,14 @@ A deep neural network combining hierarchical spatial filtering via CNNs with seq
 
 <strong style="color: #81C784; font-size: 18px; display: block; margin-bottom: 10px;">Temporal Modeling (LSTM block):</strong>
 <ul style="color:#DFB6B2; font-size: 16px; line-height: 1.8; margin-bottom: 25px;">
-<li><strong>LSTM Layer:</strong> 100 hidden units ($\\mathbf{h}_t$) maintaining a cell state ($\\mathbf{c}_t$) across time steps to model ERD/ERS temporal dynamics.</li>
+<li><strong>LSTM Layer:</strong> 100 hidden units ($\\\mathbf{h}_t$) maintaining a cell state ($\\\mathbf{c}_t$) across time steps to model ERD/ERS temporal dynamics.</li>
 </ul>
 
 <strong style="color: #81C784; font-size: 18px; display: block; margin-bottom: 10px;">Classification & Optimization:</strong>
 <ul style="color:#DFB6B2; font-size: 16px; line-height: 1.8; margin-bottom: 0;">
 <li><strong>Dense Layers:</strong> 100 $\\rightarrow$ 50 $\\rightarrow$ 4 (Softmax outputs).</li>
 <li><strong>Loss:</strong> Categorical Crossentropy.</li>
-<li><strong>Optimizer:</strong> Adam ($lr=0.001$, $\\\beta_1=0.9$, $\\\beta_2=0.999$).</li>
+<li><strong>Optimizer:</strong> Adam ($lr=0.001$, $\\\\beta_1=0.9$, $\\\\beta_2=0.999$).</li>
 </ul>
 </div>
 </div>
@@ -764,7 +767,7 @@ Because EEG data is notoriously noisy and prone to overfitting due to low signal
 <strong style="color: #FFCC80; font-size: 18px; display: block; margin-bottom: 10px;">Overfitting Prevention:</strong>
 <ul style="color:#DFB6B2; font-size: 16px; line-height: 1.8; margin-bottom: 25px;">
 <li><strong>CNN-LSTM Dropout:</strong> A high Dropout rate of $0.5$ is applied after the LSTM layer and the first Dense layer to randomly zero out activations, forcing the network to learn redundant representations.</li>
-<li><strong>Ridge Regularization:</strong> MiniRocket uses an L2 penalty ($\\alpha = 1.0$) to shrink the weights of the 10,000 features, preventing any single random kernel from dominating the decision boundary.</li>
+<li><strong>Ridge Regularization:</strong> MiniRocket uses an L2 penalty ($\\\alpha = 1.0$) to shrink the weights of the 10,000 features, preventing any single random kernel from dominating the decision boundary.</li>
 </ul>
 
 <strong style="color: #FFCC80; font-size: 18px; display: block; margin-bottom: 10px;">Validation & Epoch Constraints:</strong>
@@ -795,10 +798,10 @@ Because EEG data is notoriously noisy and prone to overfitting due to low signal
             st.markdown("""
 | Component | Specification | Mathematical Formulation |
 | :--- | :--- | :--- |
-| **Optimizer** | AdamW (Decoupled Weight Decay) | $\\theta_t = \\theta_{t-1} - \\eta_t \\Big(\\alpha \\\frac{\\\hat{m}_t}{\\sqrt{\\\hat{v}_t} + \\epsilon} + \\lambda \\theta_{t-1}\\Big)$ |
-| **Learning Rate** | 1e-3 with Cosine Annealing | $\\eta_t = \\eta_{min} + \\\frac{1}{2}(\\eta_{max} - \\eta_{min})(1 + \\cos(\\\frac{T_{cur}}{T_{max}}\\pi))$ |
-| **Loss Function** | Categorical Crossentropy | $\\\mathcal{L} = -\\\frac{1}{N} \\\sum_{i=1}^N \\\sum_{c=1}^C y_{i,c} \\\log(\\\hat{y}_{i,c})$ |
-| **Regularization** | Dropout (p=0.5) & L2 Penalty | $\\lambda = 1e-4$ |
+| **Optimizer** | AdamW (Decoupled Weight Decay) | $\\\theta_t = \\\theta_{t-1} - \\\eta_t \\Big(\\\alpha \\\frac{\\\hat{m}_t}{\\sqrt{\\\hat{v}_t} + \\\epsilon} + \\\lambda \\\theta_{t-1}\\Big)$ |
+| **Learning Rate** | 1e-3 with Cosine Annealing | $\\\eta_t = \\\eta_{min} + \\\frac{1}{2}(\\\eta_{max} - \\\eta_{min})(1 + \\cos(\\\frac{T_{cur}}{T_{max}}\\pi))$ |
+| **Loss Function** | Categorical Crossentropy | $\\\\mathcal{L} = -\\\frac{1}{N} \\\sum_{i=1}^N \\\sum_{c=1}^C y_{i,c} \\\log(\\\hat{y}_{i,c})$ |
+| **Regularization** | Dropout (p=0.5) & L2 Penalty | $\\\lambda = 1e-4$ |
 | **Gradient Clipping** | Global Norm Scaling | $g \\leftarrow g \\\frac{c}{\|g\|_2}$ if $\|g\|_2 > c$ |
 """)
 
@@ -824,7 +827,7 @@ Total params: 63,110
 Trainable params: 63,110
 Non-trainable params: 0
 _________________________________________________________________'''
-                st.markdown(render_cyber_terminal(topo_str), unsafe_allow_html=True)
+                st.markdown(render_diagnostic_log(topo_str), unsafe_allow_html=True)
 
             if st.button("▶ Initialize End-to-End Backpropagation", type="primary", use_container_width=True):
                 st.markdown('<hr style="border-color: rgba(255,255,255,0.1); margin: 30px 0;">', unsafe_allow_html=True)
@@ -854,7 +857,7 @@ _________________________________________________________________'''
                     
                 chart_col3, chart_col4 = st.columns(2)
                 with chart_col3:
-                    st.markdown("**Gradient Global Norm ($\\\mathbf{\|g\|_2}$)**")
+                    st.markdown("**Gradient Global Norm ($\\\\mathbf{\|g\|_2}$)**")
                     grad_chart = st.empty()
                 with chart_col4:
                     st.markdown("**Learning Rate**")
@@ -870,7 +873,7 @@ _________________________________________________________________'''
                 df_lr = pd.DataFrame(columns=["Learning Rate"])
                 
                 log_str = "[SYSTEM] Generating real synthetic EEG dataset (100 trials, 64 channels, 500 samples)...\n"
-                terminal.markdown(render_cyber_terminal(log_str), unsafe_allow_html=True)
+                terminal.markdown(render_diagnostic_log(log_str), unsafe_allow_html=True)
                 
                 train_dict = generate_synthetic_eeg_dataset(num_subjects=1, trials_per_class=30, sample_length=1280, random_state=42)
                 val_dict = generate_synthetic_eeg_dataset(num_subjects=1, trials_per_class=10, sample_length=1280, random_state=999)
@@ -902,13 +905,13 @@ _________________________________________________________________'''
 
                 
                 log_str += "[SYSTEM] Instantiating PyTorch Hybrid CNN-LSTM Model...\n"
-                terminal.markdown(render_cyber_terminal(log_str), unsafe_allow_html=True)
+                terminal.markdown(render_diagnostic_log(log_str), unsafe_allow_html=True)
                 
                 model = HybridCNNLSTM(input_channels=1, sequence_length=1280, num_classes=4)
                 trainer = DeepLearningTrainer(model, learning_rate=1e-3, l2_weight_decay=1e-4)
                 
                 log_str += "[SYSTEM] Model loaded to Compute Node. Starting Backpropagation...\n"
-                terminal.markdown(render_cyber_terminal(log_str), unsafe_allow_html=True)
+                terminal.markdown(render_diagnostic_log(log_str), unsafe_allow_html=True)
                 
                 # Try to get real GPU memory if available
                 vram_gb = torch.cuda.memory_allocated() / 1e9 if torch.cuda.is_available() else 0.0
@@ -992,7 +995,7 @@ _________________________________________________________________'''
                     
                     if epoch % 3 == 0 or epoch == 1:
                         log_str += f"[EPOCH {epoch:03d}/030] loss: {train_loss:.4f} | val_loss: {val_loss:.4f} | acc: {train_acc:.2f}% | val_acc: {val_acc:.2f}% | ||g||: {avg_grad_norm:.2f}\n"
-                        terminal.markdown(render_cyber_terminal(log_str), unsafe_allow_html=True)
+                        terminal.markdown(render_diagnostic_log(log_str), unsafe_allow_html=True)
                 
                 st.success(f"Real Training Convergence achieved. Final Validation Accuracy: {val_acc:.2f}%. Model weights checkpointed.")
                 
@@ -1040,11 +1043,11 @@ _________________________________________________________________'''
             st.markdown("""
 | Component | Specification | Mathematical Formulation |
 | :--- | :--- | :--- |
-| **Solver** | Cholesky Decomposition (Analytic) | $\\\mathbf{w}^* = (\\\mathbf{X}^T \\\mathbf{X} + \\alpha \\\mathbf{I})^{-1} \\\mathbf{X}^T \\\mathbf{y}$ |
+| **Solver** | Cholesky Decomposition (Analytic) | $\\\\mathbf{w}^* = (\\\\mathbf{X}^T \\\\mathbf{X} + \\\alpha \\\\mathbf{I})^{-1} \\\\mathbf{X}^T \\\\mathbf{y}$ |
 | **Feature Extraction** | Proportion of Positive Values (PPV) | $PPV = \\\frac{1}{L} \\\sum_{t=1}^L I(x_t > 0)$ |
-| **Loss Function** | Squared Hinge / L2 | $\\\min_{\\\mathbf{w}} \|\\\mathbf{Xw} - \\\mathbf{y}\|_2^2 + \\alpha \|\\\mathbf{w}\|_2^2$ |
-| **Regularization** | L2 Ridge Penalty | $\\alpha = 1.0$ (Tikhonov Regularization) |
-| **Kernel Dilation** | Exponentially Spaced | $d = \\\lfloor 2^{x} \\rfloor, x \\\in \\\mathcal{U}(0, \\\log_2(L_{max}))$ |
+| **Loss Function** | Squared Hinge / L2 | $\\\min_{\\\\mathbf{w}} \|\\\\mathbf{Xw} - \\\\mathbf{y}\|_2^2 + \\\alpha \|\\\\mathbf{w}\|_2^2$ |
+| **Regularization** | L2 Ridge Penalty | $\\\alpha = 1.0$ (Tikhonov Regularization) |
+| **Kernel Dilation** | Exponentially Spaced | $d = \\\lfloor 2^{x} \\rfloor, x \\\\in \\\\mathcal{U}(0, \\\log_2(L_{max}))$ |
 """)
 
             st.markdown("</div>", unsafe_allow_html=True)
@@ -1064,7 +1067,7 @@ Trainable params: 0 (No backpropagation)
 Non-trainable params: 0 (Deterministic)
 MACs (Multiply-Accumulates): ~3.2 Billion per forward pass
 _________________________________________________________________'''
-                st.markdown(render_cyber_terminal(topo_str), unsafe_allow_html=True)
+                st.markdown(render_diagnostic_log(topo_str), unsafe_allow_html=True)
 
             if st.button("▶ Initialize Analytic Solver Sequence", type="primary", use_container_width=True):
                 st.markdown('<hr style="border-color: rgba(255,255,255,0.1); margin: 30px 0;">', unsafe_allow_html=True)
@@ -1077,7 +1080,7 @@ _________________________________________________________________'''
                 
                 terminal = st.empty()
                 log_str = "[SYSTEM] Generating real synthetic EEG dataset (300 trials, 1 channel, 500 samples for sktime)...\n"
-                terminal.markdown(render_cyber_terminal(log_str), unsafe_allow_html=True)
+                terminal.markdown(render_diagnostic_log(log_str), unsafe_allow_html=True)
                 
                 train_dict = generate_synthetic_eeg_dataset(num_subjects=1, trials_per_class=10, sample_length=1280, random_state=42)
                 val_dict = generate_synthetic_eeg_dataset(num_subjects=1, trials_per_class=4, sample_length=1280, random_state=999)
@@ -1103,13 +1106,13 @@ _________________________________________________________________'''
                 mem_metric.metric("Allocated Size", f"{X_train.nbytes / 1e6:.2f} MB", "")
                 
                 log_str += "[SYSTEM] Instantiating real MiniRocketPipeline (num_kernels=10000)...\n"
-                terminal.markdown(render_cyber_terminal(log_str), unsafe_allow_html=True)
+                terminal.markdown(render_diagnostic_log(log_str), unsafe_allow_html=True)
                 
                 pipeline = MiniRocketPipeline(num_kernels=10000)
                 
                 log_str += "[SYSTEM] Spawning Kernels & Extracting Proportion of Positive Values (PPV)...\n"
                 log_str += "[SYSTEM] Applying Ridge Classifier (Solving X^T X + alpha I)...\n"
-                terminal.markdown(render_cyber_terminal(log_str), unsafe_allow_html=True)
+                terminal.markdown(render_diagnostic_log(log_str), unsafe_allow_html=True)
                 
                 with st.spinner("Analytically solving Ridge Regression with real data..."):
                     start_time = time.perf_counter()
@@ -1121,11 +1124,11 @@ _________________________________________________________________'''
                 acc = (preds == y_test).mean() * 100
                 
                 cond_metric.metric("Matrix Extraction Dim", f"{pipeline.feature_dim_}", "Full Rank", delta_color="normal")
-                rank_metric.metric("Best Alpha ($\\alpha$)", f"{pipeline.classifier.alpha_}", "Selected", delta_color="normal")
+                rank_metric.metric("Best Alpha ($\\\alpha$)", f"{pipeline.classifier.alpha_}", "Selected", delta_color="normal")
                 mem_metric.metric("Solver Time", f"{fit_time:.2f} s", "-Fast", delta_color="normal")
                 
                 log_str += f"[SYSTEM] Real Analytic Solution Found in {fit_time:.2f}s.\n"
-                terminal.markdown(render_cyber_terminal(log_str), unsafe_allow_html=True)
+                terminal.markdown(render_diagnostic_log(log_str), unsafe_allow_html=True)
                 
                 st.success(f"MiniRocket Ridge Classifier fitted successfully on real data! Final Validation Accuracy: {acc:.2f}%. Fast, deterministic, and analytically perfect.")
                 
@@ -1192,7 +1195,7 @@ _________________________________________________________________'''
             log_text = ""
             for log in logs:
                 log_text += f"{log}\n"
-                log_container.markdown(render_cyber_terminal(log_text), unsafe_allow_html=True)
+                log_container.markdown(render_diagnostic_log(log_text), unsafe_allow_html=True)
             
             # Distinct random states to strictly avoid data leakage from overlapping windows
             train_dict = generate_synthetic_eeg_dataset(num_subjects=1, trials_per_class=25, sample_length=1280, random_state=42)
@@ -1211,7 +1214,7 @@ _________________________________________________________________'''
             
             log_text += "[SYSTEM] BATCH SIZE: 32 | LEARNING RATE: 1e-3 | OPTIMIZER: AdamW\n"
             log_text += "[SYSTEM] STARTING BACKPROPAGATION OVER 30 EPOCHS\n"
-            log_container.markdown(render_cyber_terminal(log_text), unsafe_allow_html=True)
+            log_container.markdown(render_diagnostic_log(log_text), unsafe_allow_html=True)
             
             df_loss = pd.DataFrame(columns=["Train Loss", "Val Loss"])
             df_acc = pd.DataFrame(columns=["Train Acc", "Val Acc"])
@@ -1280,7 +1283,7 @@ _________________________________________________________________'''
                 
                 if epoch % 2 == 0 or epoch == 1:
                     log_text += f"EPOCH {epoch:3d}/30 | LOSS: {train_loss:.4f} | VAL_LOSS: {val_loss:.4f} | TRAIN_ACC: {train_acc:.1f}% | VAL_ACC: {val_acc:.1f}% | {epoch_time:.2f}s\n"
-                    log_container.markdown(render_cyber_terminal(log_text), unsafe_allow_html=True)
+                    log_container.markdown(render_diagnostic_log(log_text), unsafe_allow_html=True)
                 
                 progress_bar.progress(epoch / 30.0)
                 
@@ -1581,7 +1584,7 @@ _________________________________________________________________'''
             <div class="panel-card" style="border-left: 4px solid #F48FB1; height: 100%;">
                 <h3 style="color:#FBE4D8; font-size:15px; margin-bottom:10px;">4. Artifact Subspace Reconstruction (ICA)</h3>
                 <p style="color:#DFB6B2; font-size:12px; line-height:1.5;">
-                We utilize FastICA to estimate the unmixing matrix $\\mathbf{W}$ that projects the multi-channel sensor space $\\mathbf{X}$ into statistically independent components $\\mathbf{S}$. Ocular (blink) and muscular (jaw) components are mathematically nullified before back-projection.
+                We utilize FastICA to estimate the unmixing matrix $\\\mathbf{W}$ that projects the multi-channel sensor space $\\\mathbf{X}$ into statistically independent components $\\\mathbf{S}$. Ocular (blink) and muscular (jaw) components are mathematically nullified before back-projection.
                 </p>
                 <div style="background: rgba(0,0,0,0.4); padding: 8px; border-radius: 4px; margin-top: 10px; font-family: monospace; font-size: 11px; color: #a196aa;">
                 <b>S</b> = <b>W</b> · <b>X</b><br>
@@ -1679,7 +1682,7 @@ _________________________________________________________________'''
             </p>
             <ul style="color:#a196aa; font-size:12px; margin-top:10px;">
                 <li><b>Acquisition Protocol:</b> 64-channel EEG recordings following the international 10-10 system.</li>
-                <li><b>Sampling Frequency:</b> 160 Hz (Hardware Nyquist threshold optimally preserves $\mu$ and $\beta$ rhythms).</li>
+                <li><b>Sampling Frequency:</b> 160 Hz (Hardware Nyquist threshold optimally preserves $\\mu$ and $\\beta$ rhythms).</li>
                 <li><b>Class Paradigm:</b> 2-Class discrimination (T1: Left Fist Imagery, T2: Right Fist Imagery).</li>
                 <li><b>Trial Structure:</b> Fixed 4.0-second epochs windowed during motor execution.</li>
             </ul>
@@ -1760,7 +1763,7 @@ _________________________________________________________________'''
             
             # --- 3. Time-Frequency Representation (ERSP) ---
             st.markdown("### Event-Related Spectral Perturbation (ERSP)")
-            st.markdown("<p style='font-size:12px; color:#DFB6B2;'>Time-Frequency analysis showing exactly when and at what frequency the power attenuates (ERD). Notice the dynamic drop in $\mu$ (8-12 Hz) power shortly after the trial starts (around 1.5s - 2.5s).</p>", unsafe_allow_html=True)
+            st.markdown("<p style='font-size:12px; color:#DFB6B2;'>Time-Frequency analysis showing exactly when and at what frequency the power attenuates (ERD). Notice the dynamic drop in $\\mu$ (8-12 Hz) power shortly after the trial starts (around 1.5s - 2.5s).</p>", unsafe_allow_html=True)
             
             f_stft_l, t_stft_l, Zxx_l = scipy.signal.stft(flat_left, fs=160, nperseg=64, noverlap=32)
             f_stft_r, t_stft_r, Zxx_r = scipy.signal.stft(flat_right, fs=160, nperseg=64, noverlap=32)
@@ -1789,7 +1792,7 @@ _________________________________________________________________'''
             
             # --- 4. Instantaneous Envelope (Hilbert Transform) ---
             st.markdown("### Instantaneous Amplitude Envelope (Hilbert Transform)")
-            st.markdown("<p style='font-size:12px; color:#DFB6B2;'>By isolating the $\mu$-band (8-12 Hz) and computing the analytic signal via the Hilbert Transform, we can extract the precise instantaneous amplitude envelope. This proves mathematically exactly how much the motor cortex desynchronizes during the imagery task.</p>", unsafe_allow_html=True)
+            st.markdown("<p style='font-size:12px; color:#DFB6B2;'>By isolating the $\\mu$-band (8-12 Hz) and computing the analytic signal via the Hilbert Transform, we can extract the precise instantaneous amplitude envelope. This proves mathematically exactly how much the motor cortex desynchronizes during the imagery task.</p>", unsafe_allow_html=True)
             
             # Bandpass filter for mu band
             b_mu, a_mu = scipy.signal.butter(4, [8, 12], btype='bandpass', fs=160)
@@ -1809,14 +1812,14 @@ _________________________________________________________________'''
             env_smooth_r = scipy.signal.filtfilt(b_env, a_env, amplitude_envelope_r)
             
             fig_hilbert = go.Figure()
-            fig_hilbert.add_trace(go.Scatter(x=t_axis, y=env_smooth_l, mode='lines', name='Left Fist $\mu$ Envelope', line=dict(color='#F48FB1', width=3)))
-            fig_hilbert.add_trace(go.Scatter(x=t_axis, y=env_smooth_r, mode='lines', name='Right Fist $\mu$ Envelope', line=dict(color='#64B5F6', width=3)))
+            fig_hilbert.add_trace(go.Scatter(x=t_axis, y=env_smooth_l, mode='lines', name='Left Fist $\\mu$ Envelope', line=dict(color='#F48FB1', width=3)))
+            fig_hilbert.add_trace(go.Scatter(x=t_axis, y=env_smooth_r, mode='lines', name='Right Fist $\\mu$ Envelope', line=dict(color='#64B5F6', width=3)))
             
             fig_hilbert.update_layout(
                 paper_bgcolor='#190019', plot_bgcolor='#190019', font=dict(color='#FBE4D8'),
                 margin=dict(l=20, r=20, t=30, b=20),
                 xaxis=dict(title="Time (s)", gridcolor='#2B124C'),
-                yaxis=dict(title="Instantaneous $\mu$ Amplitude (µV)", gridcolor='#2B124C'),
+                yaxis=dict(title="Instantaneous $\\mu$ Amplitude (µV)", gridcolor='#2B124C'),
                 legend=dict(yanchor="top", y=0.99, xanchor="right", x=0.99, bgcolor='rgba(0,0,0,0.5)'),
                 height=300
             )
@@ -1849,10 +1852,26 @@ _________________________________________________________________'''
                 try:
                     # Actually parse the uploaded EDF file!
                     raw = mne.io.read_raw_edf(tmp_path, preload=True, verbose=False)
-                    data = raw.get_data() # shape (channels, times)
+                    mne.datasets.eegbci.standardize(raw) # Ensure standardized channel names
                     
-                    # We need exactly 64 channels and 1280 timepoints (4 seconds at 160Hz)
-                    # If there's more/less, we pad or truncate to fit the model exactly
+                    # Find the first active task event (T1 or T2)
+                    try:
+                        events, event_id = mne.events_from_annotations(raw, verbose=False)
+                        # Look for T1 (2) or T2 (3)
+                        active_events = [e for e in events if e[2] in [2, 3]]
+                        if active_events:
+                            start_samp = active_events[0][0]
+                        else:
+                            start_samp = raw.n_times // 2 # Fallback to middle if no annotations
+                    except:
+                        start_samp = raw.n_times // 2 # Fallback
+                        
+                    end_samp = start_samp + 1280
+                    
+                    # Extract a 4-second window (1280 samples at 160Hz)
+                    data = raw.get_data(start=start_samp, stop=end_samp) # shape (channels, times)
+                    
+                    # We need exactly 64 channels and 1280 timepoints
                     if data.shape[0] < 64:
                         pad_ch = np.zeros((64 - data.shape[0], data.shape[1]))
                         data = np.vstack([data, pad_ch])
@@ -1865,9 +1884,11 @@ _________________________________________________________________'''
                     elif data.shape[1] > 1280:
                         data = data[:, :1280]
                         
-                    # The Physionet preprocessing in our app takes the first channel (index 0).
-                    # Averaging across all channels destroys the EEG signal.
+                    # Extract channel 0 (e.g. FC3) for inference as trained
                     data_1d = data[0, :].reshape(1, 1, 1280)
+                    # Standardize the data (mean 0, unit variance) to match training distribution!
+                    data_1d = (data_1d - np.mean(data_1d)) / (np.std(data_1d) + 1e-8)
+                    
                     sample = data_1d
                     st.markdown(f"<p style='color:#DFB6B2; font-size:13px;'>Ground Truth Class: <strong style='color:#FBE4D8;'>Unknown (Uploaded File)</strong></p>", unsafe_allow_html=True)
                 except Exception as e:
