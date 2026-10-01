@@ -38,7 +38,7 @@ st.set_page_config(
 # Advanced Custom Styling matching the Premium Dashboard Prototype
 st.markdown("""
 <style>
-    @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=Rye&display=swap');
     
     /* Core app styling – dark purple palette */
     .stApp {
@@ -49,12 +49,13 @@ st.markdown("""
     
     /* Headings – cream/pink accent */
     h1, h2, h3 {
-        font-family: 'Space Grotesk', sans-serif;
+        font-family: 'Rye', serif;
         color: #FBE4D8;       /* cream */
         letter-spacing: -0.01em;
     }
     
     .main-title {
+        font-family: 'Rye', serif;
         font-size: 2.8rem;
         font-weight: 600;
         color: #FBE4D8;
