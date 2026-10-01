@@ -206,6 +206,18 @@ st.markdown("""
         background-color: #522B5B !important;
     }
 
+    /* Terminal / Code Block Overrides */
+    div[data-testid="stCodeBlock"] {
+        background-color: #190019 !important;
+    }
+    div[data-testid="stCodeBlock"] > div, div[data-testid="stCodeBlock"] pre {
+        background-color: #190019 !important;
+        border: 1px solid #522B5B !important;
+    }
+    div[data-testid="stCodeBlock"] code {
+        color: #DFB6B2 !important;
+    }
+
 </style>
 """, unsafe_allow_html=True)
 

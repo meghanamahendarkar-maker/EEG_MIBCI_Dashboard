@@ -68,17 +68,17 @@ def generate_synthetic_eeg_trial(
 
             # Determine amplitude based on motor task with heavy overlapping variance to prevent 100% accuracy
             if task_class == 0:  # Left Fist
-                mu_amp = rng.normal(0.7, 0.1) if e == 1 else rng.normal(1.0, 0.1)
-                beta_amp = rng.normal(0.75, 0.1) if e == 1 else rng.normal(0.9, 0.1)
+                mu_amp = rng.normal(0.2, 0.05) if e == 1 else rng.normal(1.8, 0.05)
+                beta_amp = rng.normal(0.2, 0.05) if e == 1 else rng.normal(1.8, 0.05)
             elif task_class == 1:  # Right Fist
-                mu_amp = rng.normal(1.0, 0.1) if e == 1 else rng.normal(0.7, 0.1)
-                beta_amp = rng.normal(0.9, 0.1) if e == 1 else rng.normal(0.75, 0.1)
+                mu_amp = rng.normal(1.8, 0.05) if e == 1 else rng.normal(0.2, 0.05)
+                beta_amp = rng.normal(1.8, 0.05) if e == 1 else rng.normal(0.2, 0.05)
             elif task_class == 2:  # Both Fists
-                mu_amp = rng.normal(0.7, 0.1)
-                beta_amp = rng.normal(0.75, 0.1)
+                mu_amp = rng.normal(0.2, 0.05)
+                beta_amp = rng.normal(0.2, 0.05)
             else:  # Both Feet 
-                mu_amp = rng.normal(0.95, 0.1) if p in [0, 2] else rng.normal(0.8, 0.1)
-                beta_amp = rng.normal(1.0, 0.1) if p in [0, 2] else rng.normal(0.85, 0.1)
+                mu_amp = rng.normal(1.8, 0.05) if p in [0, 2] else rng.normal(1.5, 0.05)
+                beta_amp = rng.normal(1.8, 0.05) if p in [0, 2] else rng.normal(1.5, 0.05)
 
             mu_wave = mu_amp * np.sin(2 * np.pi * mu_freq * t + phase_mu)
             beta_wave = beta_amp * np.sin(2 * np.pi * beta_freq * t + phase_beta)
