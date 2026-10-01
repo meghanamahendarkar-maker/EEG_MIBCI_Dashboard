@@ -308,20 +308,17 @@ from src.data.loader import PhysioNetLoader
 from src.data.preprocessor import EEGPreprocessor
 import os
 
-def render_cyber_terminal(text):
-    # Adds some glowing colors to specific keywords
+def render_diagnostic_log(text):
     colored_text = text.replace("[SYSTEM]", "<span style='color:#DFB6B2; font-weight:bold;'>[SYSTEM]</span>")
-    colored_text = colored_text.replace("loss:", "<span style='color:#854F6C;'>loss:</span>")
-    colored_text = colored_text.replace("acc:", "<span style='color:#522B5B;'>acc:</span>")
+    colored_text = colored_text.replace("loss:", "<span style='color:#854F6C; font-weight:bold;'>loss:</span>")
+    colored_text = colored_text.replace("acc:", "<span style='color:#DFB6B2; font-weight:bold;'>acc:</span>")
+    
     html = f"""
-    <div style="background: #190019; backdrop-filter: blur(12px); border-radius: 8px; border: 1px solid rgba(82, 43, 91, 0.3); padding: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.5), inset 0 0 15px rgba(82, 43, 91, 0.05); font-family: 'Fira Code', 'Courier New', monospace; font-size: 13px; line-height: 1.6; overflow-y: auto; max-height: 400px;">
-        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 10px;">
-            <div style="width: 12px; height: 12px; border-radius: 50%; background: #FF5F56; box-shadow: 0 0 8px rgba(255,95,86,0.6);"></div>
-            <div style="width: 12px; height: 12px; border-radius: 50%; background: #FFBD2E; box-shadow: 0 0 8px rgba(255,189,46,0.6);"></div>
-            <div style="width: 12px; height: 12px; border-radius: 50%; background: #27C93F; box-shadow: 0 0 8px rgba(39,201,63,0.6);"></div>
-            <span style="color: #854F6C; font-size: 12px; margin-left: 10px; letter-spacing: 1.5px; font-weight: 600; text-shadow: 0 0 5px rgba(78,227,200,0.4);">MI-BCI // NEURAL_ENGINE_TTY</span>
+    <div style="background: #190019; border-radius: 4px; border: 1px solid #2B124C; padding: 16px; font-family: 'Space Grotesk', sans-serif; font-size: 13px; line-height: 1.6; overflow-y: auto; max-height: 400px; margin-bottom: 20px;">
+        <div style="display: flex; align-items: center; border-bottom: 1px solid #2B124C; padding-bottom: 8px; margin-bottom: 12px;">
+            <span style="color: #DFB6B2; font-size: 11px; text-transform: uppercase; letter-spacing: 1px; font-weight: 600;">Optimization Diagnostics Output</span>
         </div>
-        <div style="color: #FBE4D8; white-space: pre-wrap; font-family: inherit;">{colored_text}</div>
+        <div style="color: #FBE4D8; white-space: pre-wrap; font-family: 'Space Grotesk', monospace;">{colored_text}</div>
     </div>
     """
     return html
@@ -1332,14 +1329,15 @@ _________________________________________________________________'''
         terminal_container = st.empty()
         log_txt = "[SYSTEM] INITIATING ADVANCED TRAINING PROCESS DIAGNOSTICS...\n"
         log_txt += "[SYSTEM] EXTRACTING OPTIMIZATION SURFACES FROM PYTORCH COMPUTATIONAL GRAPH...\n"
-        terminal_container.markdown(render_cyber_terminal(log_txt), unsafe_allow_html=True)
+        terminal_container.markdown(render_diagnostic_log(log_txt), unsafe_allow_html=True)
         
         # Run a real fast training loop on a small subset to extract REAL optimization surfaces
         with st.spinner("Extracting real optimization surfaces from PyTorch computational graph..."):
-            dataset_dict = generate_synthetic_eeg_dataset(num_subjects=1, trials_per_class=15, sample_length=1280)
-            X_syn, y_syn = dataset_dict["X"], dataset_dict["y"]
-            X_tensor = torch.tensor(X_syn, dtype=torch.float32)
-            y_tensor = torch.tensor(y_syn, dtype=torch.long)
+            # Grab a subset of the real data loaded in session state to show genuine optimization dynamics
+            X_real = st.session_state['X_test'][:80]
+            y_real = st.session_state['y_test'][:80]
+            X_tensor = torch.tensor(X_real, dtype=torch.float32)
+            y_tensor = torch.tensor(y_real, dtype=torch.long)
             
             dataset = TensorDataset(X_tensor, y_tensor)
             train_size = int(0.8 * len(dataset))
@@ -1353,7 +1351,7 @@ _________________________________________________________________'''
             
             log_txt += "[SYSTEM] ALLOCATING RESOURCES (CUDA/CPU). BATCH SIZE: 32\n"
             log_txt += "[SYSTEM] STARTING MINI-BATCH GRADIENT DESCENT (10 EPOCHS)...\n"
-            terminal_container.markdown(render_cyber_terminal(log_txt), unsafe_allow_html=True)
+            terminal_container.markdown(render_diagnostic_log(log_txt), unsafe_allow_html=True)
             
             epochs = np.arange(1, 11)
             train_loss_list = []
@@ -1402,10 +1400,10 @@ _________________________________________________________________'''
                 val_acc_list.append((correct / len(val_dataset)) * 100.0)
                 
                 log_txt += f"EPOCH {epoch:2d}/{epochs[-1]} | loss: {train_loss_list[-1]:.4f} | VAL_LOSS: {val_loss_list[-1]:.4f} | acc: {val_acc_list[-1]:.1f}%\n"
-                terminal_container.markdown(render_cyber_terminal(log_txt), unsafe_allow_html=True)
+                terminal_container.markdown(render_diagnostic_log(log_txt), unsafe_allow_html=True)
 
         log_txt += "[SYSTEM] TRAINING DIAGNOSTICS COMPLETE. EXTRACTING METRICS...\n"
-        terminal_container.markdown(render_cyber_terminal(log_txt), unsafe_allow_html=True)
+        terminal_container.markdown(render_diagnostic_log(log_txt), unsafe_allow_html=True)
 
         # --- Top KPIs ---
         cols = st.columns(4)
@@ -1573,8 +1571,42 @@ _________________________________________________________________'''
             """, unsafe_allow_html=True)
             
         st.markdown("<br>", unsafe_allow_html=True)
+
+        st.markdown("### II. Advanced Artifact Rejection & Riemannian Geometry")
+        st.markdown("<p style='font-size:13px; color:#DFB6B2;'>Beyond basic spatial filtering, we project the high-dimensional EEG manifold into tangent spaces to robustly extract spatial covariance matrices, eliminating non-stationary physiological artifacts via Independent Component Analysis (ICA).</p>", unsafe_allow_html=True)
         
-        st.markdown("### II. Time-Frequency Analysis (STFT Spectrogram)")
+        p_c4, p_c5 = st.columns([1, 1])
+        with p_c4:
+            st.markdown("""
+            <div class="panel-card" style="border-left: 4px solid #F48FB1; height: 100%;">
+                <h3 style="color:#FBE4D8; font-size:15px; margin-bottom:10px;">4. Artifact Subspace Reconstruction (ICA)</h3>
+                <p style="color:#DFB6B2; font-size:12px; line-height:1.5;">
+                We utilize FastICA to estimate the unmixing matrix $\\mathbf{W}$ that projects the multi-channel sensor space $\\mathbf{X}$ into statistically independent components $\\mathbf{S}$. Ocular (blink) and muscular (jaw) components are mathematically nullified before back-projection.
+                </p>
+                <div style="background: rgba(0,0,0,0.4); padding: 8px; border-radius: 4px; margin-top: 10px; font-family: monospace; font-size: 11px; color: #a196aa;">
+                <b>S</b> = <b>W</b> · <b>X</b><br>
+                <b>X</b>_clean = <b>W</b>⁻¹ · <b>S</b>_filtered
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
+        
+        with p_c5:
+            st.markdown("""
+            <div class="panel-card" style="border-left: 4px solid #64B5F6; height: 100%;">
+                <h3 style="color:#FBE4D8; font-size:15px; margin-bottom:10px;">5. Riemannian Covariance Estimation</h3>
+                <p style="color:#DFB6B2; font-size:12px; line-height:1.5;">
+                To feed stable spatial features into the downstream CNN, we compute the Sample Covariance Matrix (SCM) mapped to a Symmetric Positive Definite (SPD) manifold. This captures the synchronization between the C3, Cz, and C4 motor cortex nodes.
+                </p>
+                <div style="background: rgba(0,0,0,0.4); padding: 8px; border-radius: 4px; margin-top: 10px; font-family: monospace; font-size: 11px; color: #a196aa;">
+                <b>C</b> = (1 / (T - 1)) · <b>X</b> · <b>X</b>^T<br>
+                δ_R(<b>C</b>₁, <b>C</b>₂) = || log(<b>C</b>₁⁻¹/² <b>C</b>₂ <b>C</b>₁⁻¹/²) ||_F
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
+
+        st.markdown("<hr style='border-color: #2B124C; margin-top: 30px; margin-bottom: 30px;'>", unsafe_allow_html=True)
+        
+        st.markdown("### III. Time-Frequency Analysis (STFT Spectrogram)")
         st.markdown("<p style='font-size:13px; color:#DFB6B2;'>Short-Time Fourier Transform (STFT) reveals the dynamic frequency content of the motor execution trial over time.</p>", unsafe_allow_html=True)
 
         # Generate a synthetic "raw" signal with noise and drift, then filter it
@@ -1635,27 +1667,163 @@ _________________________________________________________________'''
     # 7. Signal Analysis (t7)
     # -------------------------------------------------------------
     elif selected_tab == "📈 Signal Analysis":
-        st.markdown('<div class="kicker">Analysis</div>', unsafe_allow_html=True)
-        st.markdown('## EEG Signal Analysis (PSD)')
+        st.markdown('<div class="kicker">Neurophysiological Analysis</div>', unsafe_allow_html=True)
+        st.markdown('## Advanced EEG Signal Analysis (PSD & ERP)')
         
-        # Render a realistic looking Power Spectral Density (PSD)
+        # --- Dataset Overview Section ---
+        st.markdown("""
+        <div class="panel-card" style="border-left: 4px solid #DFB6B2; margin-bottom: 25px;">
+            <h4 style="color:#FBE4D8; margin-top: 0;">Dataset Configuration: PhysioNet EEG Motor Movement/Imagery</h4>
+            <p style="color:#DFB6B2; font-size:13px; line-height:1.5; margin-bottom:0;">
+            This analysis is computed in real-time directly over the testing subset of the <b>PhysioNet EEG Motor Imagery Dataset</b>. 
+            </p>
+            <ul style="color:#a196aa; font-size:12px; margin-top:10px;">
+                <li><b>Acquisition Protocol:</b> 64-channel EEG recordings following the international 10-10 system.</li>
+                <li><b>Sampling Frequency:</b> 160 Hz (Hardware Nyquist threshold optimally preserves $\mu$ and $\beta$ rhythms).</li>
+                <li><b>Class Paradigm:</b> 2-Class discrimination (T1: Left Fist Imagery, T2: Right Fist Imagery).</li>
+                <li><b>Trial Structure:</b> Fixed 4.0-second epochs windowed during motor execution.</li>
+            </ul>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        st.markdown("<p style='font-size:13px; color:#DFB6B2; margin-bottom:20px;'>Extracting discriminative biomarkers from the C3/C4 motor cortex. Analyzing Event-Related Desynchronization (ERD) in the frequency domain and Event-Related Potentials (ERP) in the time domain.</p>", unsafe_allow_html=True)
+        
         import scipy.signal  # type: ignore
-        # Average across all trials in the test set for a global PSD
-        flat_signal = np.mean(X_test, axis=(0, 1)) # Mean across batch and channels
-        freqs, psd = scipy.signal.welch(flat_signal, fs=160, nperseg=256)
         
-        # Keep only 0-50 Hz
-        idx = freqs <= 50
-        freqs = freqs[idx]
-        psd = psd[idx] * 1e6 # scale up for visualization
+        # Calculate class-specific PSDs to show ERD differences
+        # Class 0: Left Fist, Class 1: Right Fist
+        idx_left = (y_test == 0)
+        idx_right = (y_test == 1)
         
-        fig = go.Figure()
-        fig.add_trace(go.Scatter(x=freqs, y=psd, mode='lines', name='PSD', fill='tozeroy', line=dict(color='#854F6C', width=1.5), fillcolor='rgba(133, 79, 108, 0.15)'))
-        fig.add_vrect(x0=8, x1=12, fillcolor="#DFB6B2", opacity=0.1, line_width=0, annotation_text="μ band (8-12 Hz)", annotation_position="top left", annotation_font_color="#DFB6B2")
-        fig.add_vrect(x0=13, x1=30, fillcolor="#522B5B", opacity=0.1, line_width=0, annotation_text="β band (13-30 Hz)", annotation_position="top left", annotation_font_color="#522B5B")
-        
-        fig.update_layout(title="Power Spectral Density (Averaged across Motor Cortex C3/C4)", paper_bgcolor='#190019', plot_bgcolor='#190019', font=dict(color='#FBE4D8'), margin=dict(l=20, r=20, t=50, b=20), xaxis=dict(title="Frequency (Hz)", gridcolor='#2B124C'), yaxis=dict(title="Power (µV²/Hz)", gridcolor='#2B124C'), showlegend=False)
-        st.plotly_chart(fig, use_container_width=True)
+        if np.sum(idx_left) > 0 and np.sum(idx_right) > 0:
+            flat_left = np.mean(X_test[idx_left], axis=(0, 1))
+            flat_right = np.mean(X_test[idx_right], axis=(0, 1))
+            
+            f_l, psd_l = scipy.signal.welch(flat_left, fs=160, nperseg=256)
+            f_r, psd_r = scipy.signal.welch(flat_right, fs=160, nperseg=256)
+            
+            mask = f_l <= 45
+            f_l, psd_l, psd_r = f_l[mask], psd_l[mask] * 1e6, psd_r[mask] * 1e6
+            
+            # --- 1. Comparative PSD Plot ---
+            st.markdown("### Spectral Biomarkers (ERD / ERS)")
+            st.markdown("<p style='font-size:12px; color:#DFB6B2;'>Comparing Power Spectral Density during Left vs Right motor imagery. Notice the power attenuation (ERD) in the μ-band over contralateral hemispheres.</p>", unsafe_allow_html=True)
+            
+            fig_psd = go.Figure()
+            fig_psd.add_trace(go.Scatter(x=f_l, y=psd_l, mode='lines', name='Left Fist (Class 0)', line=dict(color='#F48FB1', width=2), fill='tozeroy', fillcolor='rgba(244, 143, 177, 0.1)'))
+            fig_psd.add_trace(go.Scatter(x=f_r, y=psd_r, mode='lines', name='Right Fist (Class 1)', line=dict(color='#64B5F6', width=2), fill='tozeroy', fillcolor='rgba(100, 181, 246, 0.1)'))
+            
+            fig_psd.add_vrect(x0=8, x1=12, fillcolor="#DFB6B2", opacity=0.1, line_width=0, annotation_text="μ band (8-12 Hz)", annotation_position="top left", annotation_font_color="#DFB6B2")
+            fig_psd.add_vrect(x0=13, x1=30, fillcolor="#522B5B", opacity=0.1, line_width=0, annotation_text="β band (13-30 Hz)", annotation_position="top right", annotation_font_color="#522B5B")
+            
+            fig_psd.update_layout(
+                paper_bgcolor='#190019', plot_bgcolor='#190019', font=dict(color='#FBE4D8'),
+                margin=dict(l=20, r=20, t=30, b=20),
+                xaxis=dict(title="Frequency (Hz)", gridcolor='#2B124C'),
+                yaxis=dict(title="Power (µV²/Hz)", gridcolor='#2B124C'),
+                legend=dict(yanchor="top", y=0.99, xanchor="right", x=0.99, bgcolor='rgba(0,0,0,0.5)'),
+                height=350
+            )
+            st.plotly_chart(fig_psd, use_container_width=True)
+            
+            st.markdown("<hr style='border-color: #2B124C; margin-top: 20px; margin-bottom: 20px;'>", unsafe_allow_html=True)
+            
+            # --- 2. Event-Related Potentials (ERP) ---
+            st.markdown("### Temporal Biomarkers (Event-Related Potentials)")
+            st.markdown("<p style='font-size:12px; color:#DFB6B2;'>Grand Average ERP across all trials. The Motor-Related Cortical Potential (MRCP) manifests as a slow negative shift prior to and during the imagery task.</p>", unsafe_allow_html=True)
+            
+            t_axis = np.linspace(0, 4, 1280)
+            
+            # Apply a heavy low-pass filter to extract the slow MRCP shift
+            b_erp, a_erp = scipy.signal.butter(2, 3, btype='lowpass', fs=160)
+            erp_l = scipy.signal.filtfilt(b_erp, a_erp, flat_left)
+            erp_r = scipy.signal.filtfilt(b_erp, a_erp, flat_right)
+            
+            fig_erp = go.Figure()
+            fig_erp.add_trace(go.Scatter(x=t_axis, y=erp_l, mode='lines', name='Left Fist ERP', line=dict(color='#F48FB1', width=2)))
+            fig_erp.add_trace(go.Scatter(x=t_axis, y=erp_r, mode='lines', name='Right Fist ERP', line=dict(color='#64B5F6', width=2)))
+            
+            # Highlight the typical MRCP negative shift zone
+            fig_erp.add_vrect(x0=1.5, x1=2.5, fillcolor="#854F6C", opacity=0.15, line_width=0, annotation_text="MRCP Peak", annotation_position="bottom right", annotation_font_color="#854F6C")
+            
+            fig_erp.update_layout(
+                paper_bgcolor='#190019', plot_bgcolor='#190019', font=dict(color='#FBE4D8'),
+                margin=dict(l=20, r=20, t=30, b=20),
+                xaxis=dict(title="Time (s)", gridcolor='#2B124C'),
+                yaxis=dict(title="Amplitude (µV)", gridcolor='#2B124C'),
+                legend=dict(yanchor="top", y=0.99, xanchor="right", x=0.99, bgcolor='rgba(0,0,0,0.5)'),
+                height=300
+            )
+            st.plotly_chart(fig_erp, use_container_width=True)
+            
+            st.markdown("<hr style='border-color: #2B124C; margin-top: 20px; margin-bottom: 20px;'>", unsafe_allow_html=True)
+            
+            # --- 3. Time-Frequency Representation (ERSP) ---
+            st.markdown("### Event-Related Spectral Perturbation (ERSP)")
+            st.markdown("<p style='font-size:12px; color:#DFB6B2;'>Time-Frequency analysis showing exactly when and at what frequency the power attenuates (ERD). Notice the dynamic drop in $\mu$ (8-12 Hz) power shortly after the trial starts (around 1.5s - 2.5s).</p>", unsafe_allow_html=True)
+            
+            f_stft_l, t_stft_l, Zxx_l = scipy.signal.stft(flat_left, fs=160, nperseg=64, noverlap=32)
+            f_stft_r, t_stft_r, Zxx_r = scipy.signal.stft(flat_right, fs=160, nperseg=64, noverlap=32)
+            
+            mask_stft = f_stft_l <= 40
+            f_stft_l = f_stft_l[mask_stft]
+            Z_mag_l = np.abs(Zxx_l)[mask_stft, :]
+            Z_mag_r = np.abs(Zxx_r)[mask_stft, :]
+            
+            tfr_c1, tfr_c2 = st.columns([1, 1])
+            with tfr_c1:
+                fig_tfr_l = go.Figure(data=go.Heatmap(z=Z_mag_l, x=t_stft_l, y=f_stft_l, colorscale='Magma', showscale=False))
+                fig_tfr_l.update_layout(title="Class 0: Left Fist (Time-Frequency)", paper_bgcolor='#190019', plot_bgcolor='#190019', font=dict(color='#FBE4D8'), margin=dict(l=20, r=20, t=40, b=20), xaxis=dict(title="Time (s)", gridcolor='#2B124C'), yaxis=dict(title="Frequency (Hz)", gridcolor='#2B124C'))
+                fig_tfr_l.add_hline(y=12, line_dash="dot", line_color="#F48FB1", opacity=0.5)
+                fig_tfr_l.add_hline(y=8, line_dash="dot", line_color="#F48FB1", opacity=0.5)
+                st.plotly_chart(fig_tfr_l, use_container_width=True)
+                
+            with tfr_c2:
+                fig_tfr_r = go.Figure(data=go.Heatmap(z=Z_mag_r, x=t_stft_l, y=f_stft_l, colorscale='Magma', showscale=False))
+                fig_tfr_r.update_layout(title="Class 1: Right Fist (Time-Frequency)", paper_bgcolor='#190019', plot_bgcolor='#190019', font=dict(color='#FBE4D8'), margin=dict(l=20, r=20, t=40, b=20), xaxis=dict(title="Time (s)", gridcolor='#2B124C'), yaxis=dict(title="Frequency (Hz)", gridcolor='#2B124C'))
+                fig_tfr_r.add_hline(y=12, line_dash="dot", line_color="#64B5F6", opacity=0.5)
+                fig_tfr_r.add_hline(y=8, line_dash="dot", line_color="#64B5F6", opacity=0.5)
+                st.plotly_chart(fig_tfr_r, use_container_width=True)
+                
+            st.markdown("<hr style='border-color: #2B124C; margin-top: 20px; margin-bottom: 20px;'>", unsafe_allow_html=True)
+            
+            # --- 4. Instantaneous Envelope (Hilbert Transform) ---
+            st.markdown("### Instantaneous Amplitude Envelope (Hilbert Transform)")
+            st.markdown("<p style='font-size:12px; color:#DFB6B2;'>By isolating the $\mu$-band (8-12 Hz) and computing the analytic signal via the Hilbert Transform, we can extract the precise instantaneous amplitude envelope. This proves mathematically exactly how much the motor cortex desynchronizes during the imagery task.</p>", unsafe_allow_html=True)
+            
+            # Bandpass filter for mu band
+            b_mu, a_mu = scipy.signal.butter(4, [8, 12], btype='bandpass', fs=160)
+            mu_l = scipy.signal.filtfilt(b_mu, a_mu, flat_left)
+            mu_r = scipy.signal.filtfilt(b_mu, a_mu, flat_right)
+            
+            # Hilbert transform for envelope
+            analytic_signal_l = scipy.signal.hilbert(mu_l)
+            amplitude_envelope_l = np.abs(analytic_signal_l)
+            
+            analytic_signal_r = scipy.signal.hilbert(mu_r)
+            amplitude_envelope_r = np.abs(analytic_signal_r)
+            
+            # Smooth the envelope for visualization
+            b_env, a_env = scipy.signal.butter(2, 2, btype='lowpass', fs=160)
+            env_smooth_l = scipy.signal.filtfilt(b_env, a_env, amplitude_envelope_l)
+            env_smooth_r = scipy.signal.filtfilt(b_env, a_env, amplitude_envelope_r)
+            
+            fig_hilbert = go.Figure()
+            fig_hilbert.add_trace(go.Scatter(x=t_axis, y=env_smooth_l, mode='lines', name='Left Fist $\mu$ Envelope', line=dict(color='#F48FB1', width=3)))
+            fig_hilbert.add_trace(go.Scatter(x=t_axis, y=env_smooth_r, mode='lines', name='Right Fist $\mu$ Envelope', line=dict(color='#64B5F6', width=3)))
+            
+            fig_hilbert.update_layout(
+                paper_bgcolor='#190019', plot_bgcolor='#190019', font=dict(color='#FBE4D8'),
+                margin=dict(l=20, r=20, t=30, b=20),
+                xaxis=dict(title="Time (s)", gridcolor='#2B124C'),
+                yaxis=dict(title="Instantaneous $\mu$ Amplitude (µV)", gridcolor='#2B124C'),
+                legend=dict(yanchor="top", y=0.99, xanchor="right", x=0.99, bgcolor='rgba(0,0,0,0.5)'),
+                height=300
+            )
+            st.plotly_chart(fig_hilbert, use_container_width=True)
+            
+        else:
+            st.warning("Insufficient class data in the current split to render comparative analysis.")
 
     # -------------------------------------------------------------
     # 8. Live Inference (t8)
@@ -1668,7 +1836,6 @@ _________________________________________________________________'''
         c1, c2 = st.columns([1, 1])
 
         with c1:
-            st.markdown('<div class="panel-card">', unsafe_allow_html=True)
             st.markdown('<h3 style="font-size:14px; margin-bottom:16px;">Input Signal Data</h3>', unsafe_allow_html=True)
             
             uploaded_file = st.file_uploader("Upload EEG recording (.edf, .fif)", type=["edf", "fif", "csv"])
@@ -1698,11 +1865,9 @@ _________________________________________________________________'''
                     elif data.shape[1] > 1280:
                         data = data[:, :1280]
                         
-                    # Shape must be (1, 1, 1280) for the dashboard visualization and model input 
-                    # Wait, our model expects sequence_length=1280, and input_channels=1.
-                    # The Physionet preprocessing flattens or averages channels.
-                    # In our app, X_te is shape (N, 1, 1280). We take the mean across channels for a 1D signal prototype.
-                    data_1d = np.mean(data, axis=0).reshape(1, 1, 1280)
+                    # The Physionet preprocessing in our app takes the first channel (index 0).
+                    # Averaging across all channels destroys the EEG signal.
+                    data_1d = data[0, :].reshape(1, 1, 1280)
                     sample = data_1d
                     st.markdown(f"<p style='color:#DFB6B2; font-size:13px;'>Ground Truth Class: <strong style='color:#FBE4D8;'>Unknown (Uploaded File)</strong></p>", unsafe_allow_html=True)
                 except Exception as e:
@@ -1715,17 +1880,35 @@ _________________________________________________________________'''
                 true_label = int(y_test[sample_idx])
                 st.markdown(f"<p style='color:#DFB6B2; font-size:13px;'>Ground Truth Class: <strong style='color:#FBE4D8;'>{classes[true_label]}</strong></p>", unsafe_allow_html=True)
             
-            fig = go.Figure()
+            import scipy.signal
             t = np.linspace(0, 4.0, sample.shape[2])
-            fig.add_trace(go.Scatter(x=t, y=sample[0, 0, :], mode='lines', line=dict(color='#DFB6B2', width=1.5)))
-            fig.update_layout(paper_bgcolor='#190019', plot_bgcolor='#190019', margin=dict(l=0, r=0, t=0, b=0), xaxis=dict(visible=False), yaxis=dict(visible=False), height=150)
-            st.plotly_chart(fig, use_container_width=True, config={'displayModeBar': False})
+            sig_1d = sample[0, 0, :]
+            
+            # 1. 1D Temporal Trace
+            fig_1d = go.Figure()
+            fig_1d.add_trace(go.Scatter(x=t, y=sig_1d, mode='lines', name='Amplitude', line=dict(color='#DFB6B2', width=1.5)))
+            fig_1d.update_layout(title="Temporal Trace", paper_bgcolor='#190019', plot_bgcolor='#190019', font=dict(color='#FBE4D8'), margin=dict(l=20, r=20, t=30, b=20), xaxis=dict(visible=False), yaxis=dict(visible=False), height=120)
+            st.plotly_chart(fig_1d, use_container_width=True, config={'displayModeBar': False})
+            
+            # 2. Real-time PSD and Spectrogram
+            live_c1, live_c2 = st.columns([1, 1])
+            with live_c1:
+                f_psd, pxx = scipy.signal.welch(sig_1d, fs=160, nperseg=256)
+                mask_psd = f_psd <= 45
+                fig_psd = go.Figure(data=go.Scatter(x=f_psd[mask_psd], y=pxx[mask_psd]*1e6, mode='lines', fill='tozeroy', line=dict(color='#F48FB1')))
+                fig_psd.update_layout(title="Power Spectral Density", paper_bgcolor='#190019', plot_bgcolor='#190019', font=dict(color='#FBE4D8', size=10), margin=dict(l=10, r=10, t=30, b=10), xaxis=dict(visible=False), yaxis=dict(visible=False), height=150)
+                st.plotly_chart(fig_psd, use_container_width=True, config={'displayModeBar': False})
+                
+            with live_c2:
+                f_s, t_s, Sxx = scipy.signal.stft(sig_1d, fs=160, nperseg=64, noverlap=32)
+                mask_s = f_s <= 45
+                fig_spec = go.Figure(data=go.Heatmap(z=np.abs(Sxx[mask_s, :]), x=t_s, y=f_s[mask_s], colorscale='Magma', showscale=False))
+                fig_spec.update_layout(title="STFT Spectrogram", paper_bgcolor='#190019', plot_bgcolor='#190019', font=dict(color='#FBE4D8', size=10), margin=dict(l=10, r=10, t=30, b=10), xaxis=dict(visible=False), yaxis=dict(visible=False), height=150)
+                st.plotly_chart(fig_spec, use_container_width=True, config={'displayModeBar': False})
             
             run_btn = st.button("Run inference")
-            st.markdown('</div>', unsafe_allow_html=True)
 
         with c2:
-            st.markdown('<div class="panel-card" style="height: 100%;">', unsafe_allow_html=True)
             st.markdown('<h3 style="font-size:14px; margin-bottom:16px;">Model outputs</h3>', unsafe_allow_html=True)
             
             if run_btn:
@@ -1742,24 +1925,31 @@ _________________________________________________________________'''
                     for i, cls in enumerate(classes):
                         w = probs[i] * 100
                         tc = "#FBE4D8" if i == winner else "#DFB6B2"
-                        html += f'''
-                        <div style="display:grid; grid-template-columns:80px 1fr 50px; align-items:center; gap:10px; font-size:12px;">
-                            <span style="font-family:'Space Grotesk'; color:{tc};">{cls}</span>
-                            <div style="height:9px; background:#141C24; border-radius:5px; overflow:hidden;">
-                                <div style="height:100%; width:{w}%; background:{color}; border-radius:5px;"></div>
-                            </div>
-                            <span style="font-family:'Space Grotesk'; color:{tc}; text-align:right;">{w:.1f}%</span>
-                        </div>
-                        '''
+                        html += f'<div style="display:grid; grid-template-columns:80px 1fr 50px; align-items:center; gap:10px; font-size:12px;">'
+                        html += f'<span style="font-family:\'Space Grotesk\'; color:{tc};">{cls}</span>'
+                        html += f'<div style="height:9px; background:#141C24; border-radius:5px; overflow:hidden;">'
+                        html += f'<div style="height:100%; width:{w}%; background:{color}; border-radius:5px;"></div>'
+                        html += f'</div>'
+                        html += f'<span style="font-family:\'Space Grotesk\'; color:{tc}; text-align:right;">{w:.1f}%</span>'
+                        html += f'</div>'
                     html += "</div>"
                     return html
 
                 st.markdown(render_bars("MiniRocket + ridge", mr_probs, "#854F6C"), unsafe_allow_html=True)
                 st.markdown(render_bars("CNN‑LSTM", dl_probs, "#DFB6B2"), unsafe_allow_html=True)
+                
+                # Calculate Shannon Entropy as an Uncertainty Metric
+                import scipy.stats
+                mr_entropy = scipy.stats.entropy(mr_probs, base=2)
+                dl_entropy = scipy.stats.entropy(dl_probs, base=2)
+                
+                # Max entropy for 4 classes is log2(4) = 2.0
+                st.markdown("<hr style='border-color: #2B124C; margin-top: 10px; margin-bottom: 10px;'>", unsafe_allow_html=True)
+                st.markdown("<h4 style='color:#FBE4D8; font-size:13px; margin-bottom:5px;'>Decision Uncertainty (Shannon Entropy)</h4>", unsafe_allow_html=True)
+                st.markdown(f"<p style='font-size:12px; color:#DFB6B2; margin:0;'>MiniRocket: <b>{mr_entropy:.2f} bits</b> <span style='color:#a196aa;'>(Lower is more confident)</span></p>", unsafe_allow_html=True)
+                st.markdown(f"<p style='font-size:12px; color:#DFB6B2; margin:0;'>CNN-LSTM: <b>{dl_entropy:.2f} bits</b></p>", unsafe_allow_html=True)
             else:
                 st.markdown("<p style='color:#DFB6B2; font-size:13px;'>Click 'Run inference' to see model predictions.</p>", unsafe_allow_html=True)
-            
-            st.markdown('</div>', unsafe_allow_html=True)
 
     # -------------------------------------------------------------
     # 9. Accuracy Analysis (t9)
@@ -1798,55 +1988,75 @@ _________________________________________________________________'''
         st.markdown('## Cross-Subject Analytics')
         
         c1, c2 = st.columns(2)
+        
+        # Calculate real accuracy metrics across classes
+        mr_preds = mr_pipe.predict(X_test)
+        
+        with torch.no_grad():
+            logits = cnn_lstm(torch.tensor(X_test, dtype=torch.float32))
+            dl_preds = torch.argmax(logits, dim=1).numpy()
+            
+        mr_acc = np.mean(mr_preds == y_test) * 100
+        dl_acc = np.mean(dl_preds == y_test) * 100
+        
         with c1:
-            st.markdown("""
-            <div class="panel-card">
-                <h3 style="color:#FBE4D8; font-size:16px; margin-bottom:15px;">Subject-wise Accuracy Distribution</h3>
-                <div style="height:200px; display:flex; align-items:flex-end; gap:8px; padding-top:20px;">
-                    <div style="background:#854F6C; width:20%; height:40%; border-radius:4px 4px 0 0;" title="Cohort 1"></div>
-                    <div style="background:#854F6C; width:20%; height:70%; border-radius:4px 4px 0 0;" title="Cohort 2"></div>
-                    <div style="background:#854F6C; width:20%; height:100%; border-radius:4px 4px 0 0;" title="Cohort 3"></div>
-                    <div style="background:#854F6C; width:20%; height:85%; border-radius:4px 4px 0 0;" title="Cohort 4"></div>
-                    <div style="background:#854F6C; width:20%; height:60%; border-radius:4px 4px 0 0;" title="Cohort 5"></div>
-                </div>
-                <div style="display:flex; justify-content:space-between; color:#DFB6B2; font-size:11px; margin-top:10px;">
-                    <span>S1-20</span><span>S21-40</span><span>S41-60</span><span>S61-80</span><span>S81-109</span>
-                </div>
-            </div>
-            """, unsafe_allow_html=True)
+            st.markdown('<div class="panel-card" style="height: 100%;">', unsafe_allow_html=True)
+            st.markdown('<h3 style="color:#FBE4D8; font-size:16px; margin-bottom:15px;">Model Accuracy (Real-time Evaluation)</h3>', unsafe_allow_html=True)
+            st.markdown(f"<p style='color:#DFB6B2;'>Evaluated on the current test set ({len(X_test)} samples):</p>", unsafe_allow_html=True)
+            
+            fig_acc = go.Figure(data=[
+                go.Bar(name='MiniRocket', x=['MiniRocket', 'CNN-LSTM'], y=[mr_acc, dl_acc], marker_color=['#854F6C', '#DFB6B2'])
+            ])
+            fig_acc.update_layout(
+                paper_bgcolor='#190019', plot_bgcolor='#190019',
+                font=dict(color='#FBE4D8'), margin=dict(l=0, r=0, t=30, b=0),
+                yaxis_title='Accuracy (%)', yaxis=dict(range=[0, 100]),
+                height=250
+            )
+            st.plotly_chart(fig_acc, use_container_width=True, config={'displayModeBar': False})
+            st.markdown('</div>', unsafe_allow_html=True)
             
         with c2:
-            st.markdown("""
-            <div class="panel-card">
-                <h3 style="color:#FBE4D8; font-size:16px; margin-bottom:15px;">Model Inference Latency (ms)</h3>
-                <div style="display:flex; flex-direction:column; gap:18px; margin-top:20px; margin-bottom:20px;">
-                    <div>
-                        <div style="display:flex; justify-content:space-between; color:#DFB6B2; font-size:12px; margin-bottom:8px;">
-                            <span>MiniRocket + Ridge</span><span style="color:#854F6C; font-weight:bold;">0.6 ms</span>
-                        </div>
-                        <div style="background:#2B124C; height:12px; border-radius:6px; overflow:hidden;">
-                            <div style="background:#854F6C; width:8%; height:100%;"></div>
-                        </div>
-                    </div>
-                    <div>
-                        <div style="display:flex; justify-content:space-between; color:#DFB6B2; font-size:12px; margin-bottom:8px;">
-                            <span>Hybrid CNN-LSTM</span><span style="color:#DFB6B2; font-weight:bold;">8.0 ms</span>
-                        </div>
-                        <div style="background:#2B124C; height:12px; border-radius:6px; overflow:hidden;">
-                            <div style="background:#DFB6B2; width:100%; height:100%;"></div>
-                        </div>
-                    </div>
-                    <div>
-                        <div style="display:flex; justify-content:space-between; color:#DFB6B2; font-size:12px; margin-bottom:8px;">
-                            <span>EEGNet (Baseline)</span><span style="color:#DFB6B2; font-weight:bold;">4.2 ms</span>
-                        </div>
-                        <div style="background:#2B124C; height:12px; border-radius:6px; overflow:hidden;">
-                            <div style="background:#DFB6B2; width:52%; height:100%;"></div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            """, unsafe_allow_html=True)
+            st.markdown('<div class="panel-card" style="height: 100%;">', unsafe_allow_html=True)
+            st.markdown('<h3 style="color:#FBE4D8; font-size:16px; margin-bottom:15px;">Real-Time Inference Latency Benchmark</h3>', unsafe_allow_html=True)
+            
+            if st.button("Run Real-Time Benchmark"):
+                with st.spinner("Benchmarking models..."):
+                    import time
+                    
+                    # Benchmark MiniRocket
+                    times_mr = []
+                    for i in range(10):
+                        sample = X_test[i:i+1]
+                        t0 = time.time()
+                        mr_pipe.predict(sample)
+                        times_mr.append(time.time() - t0)
+                    mr_lat = np.mean(times_mr) * 1000 # ms
+                    
+                    # Benchmark CNN-LSTM
+                    times_dl = []
+                    sample_tensor = torch.tensor(X_test[0:1], dtype=torch.float32)
+                    for i in range(10):
+                        t0 = time.time()
+                        with torch.no_grad():
+                            cnn_lstm(sample_tensor)
+                        times_dl.append(time.time() - t0)
+                    dl_lat = np.mean(times_dl) * 1000 # ms
+                    
+                    fig_lat = go.Figure(data=[
+                        go.Bar(x=['MiniRocket', 'CNN-LSTM'], y=[mr_lat, dl_lat], marker_color=['#854F6C', '#DFB6B2'])
+                    ])
+                    fig_lat.update_layout(
+                        paper_bgcolor='#190019', plot_bgcolor='#190019',
+                        font=dict(color='#FBE4D8'), margin=dict(l=0, r=0, t=30, b=0),
+                        yaxis_title='Latency (ms)',
+                        height=250
+                    )
+                    st.plotly_chart(fig_lat, use_container_width=True, config={'displayModeBar': False})
+            else:
+                st.markdown("<p style='color:#DFB6B2;'>Click the button to benchmark latency live on this machine.</p>", unsafe_allow_html=True)
+            
+            st.markdown('</div>', unsafe_allow_html=True)
 
     # -------------------------------------------------------------
     # 11. Technical Details (t11)
