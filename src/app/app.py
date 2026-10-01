@@ -133,7 +133,7 @@ st.markdown("""
         border: 1px solid #522B5B;
         border-radius: 12px;
         padding: 26px;
-        background: rgba(43, 18, 76, 0.78); /* #2B124C */
+        background: #190019;
         backdrop-filter: blur(8px);
         margin-bottom: 20px;
         transition: box-shadow 0.2s ease;
@@ -478,9 +478,9 @@ Translating raw EEG brainwaves into commands requires extracting patterns. Tradi
 </div>
 
 <strong style="color: #FFFFFF; font-size: 1.1em;">Level 2 & 3: Advanced Architectures (Pipeline Steps)</strong><br>
-<div class="overview-card" style="border-left-color: #9575CD; margin-top: 10px;">
+<div class="overview-card" style="border-left-color: #522B5B; margin-top: 10px;">
 <span class="overview-highlight" style="color: #B39DDB;">1. MiniRocket Pipeline (Deterministic Feature Extraction)</span><br>
-<div style="margin-top: 10px; padding-left: 10px; border-left: 2px dashed #9575CD;">
+<div style="margin-top: 10px; padding-left: 10px; border-left: 2px dashed #522B5B;">
 <strong>Step 1: Signal Standardization</strong> - Input EEG shape (64 channels × 640 time steps) is z-score normalized per channel.<br><br>
 <strong>Step 2: Dilated Convolutions</strong> - Data passes through 10,000 fixed (untrained), random, dilated 1D convolutional kernels.<br><br>
 <strong>Step 3: PPV Pooling</strong> - For each kernel output, the Proportion of Positive Values (PPV) is calculated, collapsing the time dimension into a single scalar.<br><br>
@@ -517,7 +517,7 @@ Translating raw EEG brainwaves into commands requires extracting patterns. Tradi
 </div>
 
 <div class="overview-card" style="flex: 1; min-width: 300px; border-left-color: #FF9800;">
-<span class="overview-highlight" style="color: #FFB74D;">Classification Targets (4-Class)</span><br>
+<span class="overview-highlight" style="color: #DFB6B2;">Classification Targets (4-Class)</span><br>
 <ul class="spec-list" style="margin-top: 10px;">
 <li><strong>Class 0 (Left Fist):</strong> Imagination of left hand opening/closing</li>
 <li><strong>Class 1 (Right Fist):</strong> Imagination of right hand opening/closing</li>
@@ -548,7 +548,7 @@ Before entering the models, the raw continuous EEG data undergoes strict filteri
         st.markdown('<div class="sub-title" style="color: #DFB6B2; font-size: 1.1em; margin-bottom: 30px;">Both branches ingest identical z-score normalized continuous EEG streams (64 channels × 640 timesteps). They diverge entirely in feature extraction philosophy: deterministic transformation versus end-to-end backpropagation.</div>', unsafe_allow_html=True)
         
         st.markdown("""
-<div class="panel-card mr-accent" style="background: rgba(43, 18, 76, 0.95); border: 1px solid rgba(149, 117, 205, 0.4); border-left: 6px solid #9575CD; padding: 40px; border-radius: 12px; margin-bottom: 40px;">
+<div class="panel-card mr-accent" style="background: #190019; border: 1px solid rgba(82, 43, 91, 0.4); border-left: 6px solid #522B5B; padding: 40px; border-radius: 12px; margin-bottom: 40px;">
 <h3 style="color:#B39DDB; font-size: 26px; font-family: 'Space Grotesk', sans-serif; margin-top: 0; margin-bottom: 15px;">1. MiniRocket + Ridge (Deterministic)</h3>
 <p style="color: #E0E0E0; font-size: 18px; line-height: 1.8; margin-bottom: 25px;">
 MiniRocket computes convolutional features at a fraction of the cost of deep networks by abandoning gradient descent for feature extraction.
@@ -575,7 +575,7 @@ MiniRocket computes convolutional features at a fraction of the cost of deep net
 </div>
 </div>
 
-<div class="panel-card cl-accent" style="background: rgba(43, 18, 76, 0.95); border: 1px solid rgba(133, 79, 108, 0.4); border-left: 6px solid #854F6C; padding: 40px; border-radius: 12px; margin-bottom: 40px;">
+<div class="panel-card cl-accent" style="background: #190019; border: 1px solid rgba(133, 79, 108, 0.4); border-left: 6px solid #854F6C; padding: 40px; border-radius: 12px; margin-bottom: 40px;">
 <h3 style="color:#FBE4D8; font-size: 26px; font-family: 'Space Grotesk', sans-serif; margin-top: 0; margin-bottom: 15px;">2. Hybrid CNN-LSTM (Spatiotemporal)</h3>
 <p style="color: #E0E0E0; font-size: 18px; line-height: 1.8; margin-bottom: 25px;">
 A deep neural network combining hierarchical spatial filtering via CNNs with sequence modeling via recurrent LSTM cells.
@@ -602,8 +602,8 @@ A deep neural network combining hierarchical spatial filtering via CNNs with seq
 </div>
 </div>
 
-<div class="panel-card" style="background: rgba(43, 18, 76, 0.95); border: 1px solid rgba(255, 183, 77, 0.4); border-left: 6px solid #FFB74D; padding: 40px; border-radius: 12px; margin-bottom: 40px;">
-<h3 style="color:#FFB74D; font-size: 26px; font-family: 'Space Grotesk', sans-serif; margin-top: 0; margin-bottom: 15px;">3. Global Regularization & Validation Strategy</h3>
+<div class="panel-card" style="background: #190019; border: 1px solid rgba(223, 182, 178, 0.4); border-left: 6px solid #DFB6B2; padding: 40px; border-radius: 12px; margin-bottom: 40px;">
+<h3 style="color:#DFB6B2; font-size: 26px; font-family: 'Space Grotesk', sans-serif; margin-top: 0; margin-bottom: 15px;">3. Global Regularization & Validation Strategy</h3>
 <p style="color: #E0E0E0; font-size: 18px; line-height: 1.8; margin-bottom: 25px;">
 Because EEG data is notoriously noisy and prone to overfitting due to low signal-to-noise ratios (SNR), strict regularization and robust validation constraints are applied across both architectures.
 </p>
@@ -635,7 +635,7 @@ Because EEG data is notoriously noisy and prone to overfitting due to low signal
         
         if model_choice == "Hybrid CNN-LSTM":
             st.markdown("""
-<div style="background: rgba(43, 18, 76, 0.95); padding: 35px; border-radius: 12px; border: 1px solid rgba(133, 79, 108, 0.4); border-left: 6px solid #854F6C; margin-bottom: 20px; margin-top: 20px;">
+<div style="background: #190019; padding: 35px; border-radius: 12px; border: 1px solid rgba(133, 79, 108, 0.4); border-left: 6px solid #854F6C; margin-bottom: 20px; margin-top: 20px;">
 <h4 style="color: #FBE4D8; margin-top: 0; margin-bottom: 25px; font-family: 'Space Grotesk', sans-serif; font-size: 22px;">Advanced Training Configuration</h4>
 """, unsafe_allow_html=True)
 
@@ -717,7 +717,7 @@ _________________________________________________________________
                     colored_text = colored_text.replace("loss:", "<span style='color:#854F6C;'>loss:</span>")
                     colored_text = colored_text.replace("acc:", "<span style='color:#522B5B;'>acc:</span>")
                     html = f"""
-                    <div style="background: linear-gradient(145deg, rgba(16,22,29,0.95) 0%, rgba(10,15,20,0.98) 100%); backdrop-filter: blur(12px); border-radius: 8px; border: 1px solid rgba(78, 227, 200, 0.3); padding: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.5), inset 0 0 15px rgba(78, 227, 200, 0.05); font-family: 'Fira Code', 'Courier New', monospace; font-size: 13px; line-height: 1.6; overflow-y: auto; max-height: 400px;">
+                    <div style="background: #190019; backdrop-filter: blur(12px); border-radius: 8px; border: 1px solid rgba(82, 43, 91, 0.3); padding: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.5), inset 0 0 15px rgba(82, 43, 91, 0.05); font-family: 'Fira Code', 'Courier New', monospace; font-size: 13px; line-height: 1.6; overflow-y: auto; max-height: 400px;">
                         <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 10px;">
                             <div style="width: 12px; height: 12px; border-radius: 50%; background: #FF5F56; box-shadow: 0 0 8px rgba(255,95,86,0.6);"></div>
                             <div style="width: 12px; height: 12px; border-radius: 50%; background: #FFBD2E; box-shadow: 0 0 8px rgba(255,189,46,0.6);"></div>
@@ -848,7 +848,7 @@ _________________________________________________________________
 
         elif model_choice == "MiniRocket (Ridge Classifier)":
             st.markdown("""
-<div style="background: rgba(43, 18, 76, 0.95); padding: 35px; border-radius: 12px; border: 1px solid rgba(229, 115, 115, 0.4); border-left: 6px solid #E57373; margin-bottom: 20px; margin-top: 20px;">
+<div style="background: #190019; padding: 35px; border-radius: 12px; border: 1px solid rgba(133, 79, 108, 0.4); border-left: 6px solid #854F6C; margin-bottom: 20px; margin-top: 20px;">
 <h4 style="color: #FBE4D8; margin-top: 0; margin-bottom: 25px; font-family: 'Space Grotesk', sans-serif; font-size: 22px;">Deterministic Feature Extraction Configuration</h4>
 """, unsafe_allow_html=True)
 
