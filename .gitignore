@@ -1,0 +1,25 @@
+# Python / IDE
+__pycache__/
+*.py[cod]
+*$py.class
+.vscode/
+.idea/
+
+# Virtual Environment
+.venv/
+venv/
+ENV/
+env/
+env.bak/
+venv.bak/
+
+# Project Data and Models
+data/physionet/
+checkpoints/
+*.pkl
+*.pt
+*.pth
+*.h5
+
+# Misc
+.DS_Store

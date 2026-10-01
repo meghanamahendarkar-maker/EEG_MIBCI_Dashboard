@@ -1,0 +1,14 @@
+{
+  "MiniRocket": {
+    "trainable_params": 39988,
+    "train_time_min": 0.3377194516666198,
+    "avg_latency_ms": 13.921815000039715,
+    "latency_per_trial_ms": 125.29633500035743
+  },
+  "CNN-LSTM": {
+    "trainable_params": 70586,
+    "train_time_min": 4.248766155000006,
+    "avg_latency_ms": 13.250528000062332,
+    "latency_per_trial_ms": 119.25475200056098
+  }
+}

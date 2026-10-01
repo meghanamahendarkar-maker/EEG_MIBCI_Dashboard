@@ -1,0 +1,88 @@
+# Configuration for Motor Imagery EEG Classification
+# Based on Hwaidi & Ghanem (NeuroImage 2026)
+
+dataset:
+  name: "physionet_eegmmidb"
+  raw_sampling_rate: 160
+  target_sampling_rate: 128
+  trial_duration_sec: 4.0
+  intermission_sec: 2.0
+  baseline_sec: 2.0
+  subjects: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10] # Representative S1-S10
+  classes:
+    0: "Left Fist (T1)"
+    1: "Right Fist (T2)"
+    2: "Both Fists (T3)"
+    3: "Both Feet (T4)"
+  # PhysioNet runs for motor imagery
+  # Task 1 (L/R fist): runs 4, 8, 12
+  # Task 2 (Both fists/feet): runs 6, 10, 14
+  imagined_runs_task1: [4, 8, 12]
+  imagined_runs_task2: [6, 10, 14]
+  # 5 symmetric motor cortex electrode pairs (10-20 system)
+  electrode_pairs:
+    - ["FC3", "FC4"]
+    - ["C3", "C4"]
+    - ["CP3", "CP4"]
+    - ["C1", "C2"]
+    - ["C5", "C6"]
+  # If 64-channel montage does not have C1/C2 or CP3/CP4, fallback pairs:
+  fallback_electrode_pairs:
+    - ["FC3.", "FC4."]
+    - ["C3..", "C4.."]
+    - ["CP3.", "CP4."]
+    - ["FC1.", "FC2."]
+    - ["CP1.", "CP2."]
+
+preprocessing:
+  resample_ratio: [4, 5] # 160 Hz -> 128 Hz
+  mu_band: [8.0, 14.0]    # Mu rhythm (Hz)
+  beta_band: [14.0, 30.0] # Beta rhythm (Hz)
+  filter_order: 4
+  use_ica: true
+  ica_components: 15
+  ica_method: "fastica"
+  samples_per_trial: 9    # Segmentation to 9 non-overlapping samples per 4s trial
+  sample_length: 1280     # 2 electrodes * 640 points = 1280
+  split_ratio: [0.5, 0.2, 0.3] # Train : Val : Test (5:2:3)
+  cv_folds: 10
+
+minirocket:
+  num_kernels: 10000
+  max_dilations: 28        # Optimal max dilation found in paper (28 vs default 32)
+  pooling: "ppv"           # Proportion of Positive Values only
+  classifier: "ridge"      # Ridge classifier
+  alpha_search: [0.01, 0.1, 1.0, 10.0, 100.0]
+  random_state: 42
+
+cnn_lstm:
+  conv1_filters: 16
+  conv1_kernel: 3
+  conv2_filters: 32
+  conv2_kernel: 3
+  dropout_conv: 0.5
+  pool_size: 2
+  pool_stride: 1
+  lstm_units: 100
+  dropout_lstm: 0.5
+  dense1_units: 100
+  dropout_dense1: 0.25
+  dense2_units: 50
+  dropout_dense2: 0.25
+  num_classes: 4
+  learning_rate: 0.00001   # 1e-5 persistence Adam
+  l2_weight_decay: 0.01    # L2 regularization 0.01
+  batch_size: 64
+  epochs: 100
+  early_stopping_patience: 15
+
+ablation:
+  evaluate_no_ica: true
+  evaluate_cnn_gru: true
+  evaluate_svm: true
+  evaluate_logistic_regression: true
+
+benchmark:
+  batch_size_inference: 1
+  latency_warmup_runs: 50
+  latency_timed_runs: 200
