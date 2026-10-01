@@ -216,7 +216,87 @@ st.markdown("""
     }
     div[data-testid="stCodeBlock"] code {
         color: #DFB6B2 !important;
+        background-color: transparent !important;
     }
+
+    /* Table Overrides */
+    table {
+        background-color: #190019 !important;
+        border: 1px solid #2B124C !important;
+        color: #FBE4D8 !important;
+    }
+    th, td {
+        border-bottom: 1px solid #2B124C !important;
+        border-right: none !important;
+        border-left: none !important;
+    }
+    th {
+        background-color: #2B124C !important;
+        color: #DFB6B2 !important;
+    }
+    tbody tr:nth-of-type(even) {
+        background-color: rgba(82, 43, 91, 0.2) !important;
+    }
+    tbody tr:nth-of-type(odd) {
+        background-color: #190019 !important;
+    }
+
+    /* Metric Overrides */
+    [data-testid="stMetric"] {
+        background-color: #190019 !important;
+        border: 1px solid #522B5B !important;
+        border-radius: 8px !important;
+        padding: 10px !important;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.3) !important;
+    }
+    [data-testid="stMetricLabel"] p {
+        color: #DFB6B2 !important;
+        font-family: 'Space Grotesk', sans-serif !important;
+    }
+    [data-testid="stMetricValue"] div {
+        color: #FBE4D8 !important;
+    }
+
+
+    .cyber-box {
+        background: #190019 !important;
+        backdrop-filter: blur(12px) !important;
+        border-radius: 8px !important;
+        border: 1px solid rgba(82, 43, 91, 0.3) !important;
+        padding: 50px 25px 25px 25px !important;
+        margin-bottom: 30px !important;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.5), inset 0 0 15px rgba(82, 43, 91, 0.05) !important;
+        position: relative;
+    }
+    .cyber-box::before {
+        content: '';
+        position: absolute;
+        top: 15px;
+        left: 20px;
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        background: #FF5F56;
+        box-shadow: 0 0 8px rgba(255,95,86,0.6), 20px 0 0 #FFBD2E, 20px 0 8px rgba(255,189,46,0.6), 40px 0 0 #27C93F, 40px 0 8px rgba(39,201,63,0.6);
+    }
+    .cyber-box::after {
+        content: attr(data-title);
+        position: absolute;
+        top: 13px;
+        left: 45px;
+        color: #854F6C;
+        font-size: 13px;
+        letter-spacing: 1.5px;
+        font-weight: 700;
+        font-family: 'Space Grotesk', sans-serif;
+        text-shadow: 0 0 5px rgba(133, 79, 108, 0.4);
+    }
+    .cyber-box-inner {
+        border-top: 1px solid rgba(133, 79, 108, 0.3);
+        padding-top: 15px;
+        color: #FBE4D8;
+    }
+    .cyber-box-inner h3, .cyber-box-inner h4 { margin-top: 0; }
 
 </style>
 """, unsafe_allow_html=True)
@@ -227,6 +307,24 @@ import torch
 from src.data.loader import PhysioNetLoader
 from src.data.preprocessor import EEGPreprocessor
 import os
+
+def render_cyber_terminal(text):
+    # Adds some glowing colors to specific keywords
+    colored_text = text.replace("[SYSTEM]", "<span style='color:#DFB6B2; font-weight:bold;'>[SYSTEM]</span>")
+    colored_text = colored_text.replace("loss:", "<span style='color:#854F6C;'>loss:</span>")
+    colored_text = colored_text.replace("acc:", "<span style='color:#522B5B;'>acc:</span>")
+    html = f"""
+    <div style="background: #190019; backdrop-filter: blur(12px); border-radius: 8px; border: 1px solid rgba(82, 43, 91, 0.3); padding: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.5), inset 0 0 15px rgba(82, 43, 91, 0.05); font-family: 'Fira Code', 'Courier New', monospace; font-size: 13px; line-height: 1.6; overflow-y: auto; max-height: 400px;">
+        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 10px;">
+            <div style="width: 12px; height: 12px; border-radius: 50%; background: #FF5F56; box-shadow: 0 0 8px rgba(255,95,86,0.6);"></div>
+            <div style="width: 12px; height: 12px; border-radius: 50%; background: #FFBD2E; box-shadow: 0 0 8px rgba(255,189,46,0.6);"></div>
+            <div style="width: 12px; height: 12px; border-radius: 50%; background: #27C93F; box-shadow: 0 0 8px rgba(39,201,63,0.6);"></div>
+            <span style="color: #854F6C; font-size: 12px; margin-left: 10px; letter-spacing: 1.5px; font-weight: 600; text-shadow: 0 0 5px rgba(78,227,200,0.4);">MI-BCI // NEURAL_ENGINE_TTY</span>
+        </div>
+        <div style="color: #FBE4D8; white-space: pre-wrap; font-family: inherit;">{colored_text}</div>
+    </div>
+    """
+    return html
 
 @st.cache_resource
 def load_or_train_demo_models():
@@ -328,7 +426,7 @@ def main():
             icons=["house", "building", "terminal", "lightning", "graph-up", "gear", "activity", "cpu", "bullseye", "globe", "gear"],
             default_index=0,
             styles={
-                "container": {"padding": "0!important", "background-color": "transparent"},
+                "container": {"padding": "0!important", "background-color": "#0A000A"},
                 "icon": {"color": "#854F6C", "font-size": "15px"},
                 "nav-link": {
                     "font-size": "14px", 
@@ -338,7 +436,11 @@ def main():
                     "font-family": "Inter, sans-serif",
                     "color": "#DFB6B2"
                 },
-                "nav-link-selected": {"background-color": "rgba(82, 43, 91, 0.5)", "color": "#FBE4D8"},
+                "nav-link-selected": {
+                    "background-color": "rgba(82, 43, 91, 0.3)", 
+                    "color": "#FBE4D8",
+                    "font-weight": "normal"
+                },
             }
         )
     
@@ -444,6 +546,47 @@ def main():
         background-color: #522B5B !important;
     }
 
+
+    .cyber-box {
+        background: #190019 !important;
+        backdrop-filter: blur(12px) !important;
+        border-radius: 8px !important;
+        border: 1px solid rgba(82, 43, 91, 0.3) !important;
+        padding: 50px 25px 25px 25px !important;
+        margin-bottom: 30px !important;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.5), inset 0 0 15px rgba(82, 43, 91, 0.05) !important;
+        position: relative;
+    }
+    .cyber-box::before {
+        content: '';
+        position: absolute;
+        top: 15px;
+        left: 20px;
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        background: #FF5F56;
+        box-shadow: 0 0 8px rgba(255,95,86,0.6), 20px 0 0 #FFBD2E, 20px 0 8px rgba(255,189,46,0.6), 40px 0 0 #27C93F, 40px 0 8px rgba(39,201,63,0.6);
+    }
+    .cyber-box::after {
+        content: attr(data-title);
+        position: absolute;
+        top: 13px;
+        left: 45px;
+        color: #854F6C;
+        font-size: 13px;
+        letter-spacing: 1.5px;
+        font-weight: 700;
+        font-family: 'Space Grotesk', sans-serif;
+        text-shadow: 0 0 5px rgba(133, 79, 108, 0.4);
+    }
+    .cyber-box-inner {
+        border-top: 1px solid rgba(133, 79, 108, 0.3);
+        padding-top: 15px;
+        color: #FBE4D8;
+    }
+    .cyber-box-inner h3, .cyber-box-inner h4 { margin-top: 0; }
+
 </style>
         """, unsafe_allow_html=True)
 
@@ -466,12 +609,12 @@ This paradigm induces prominent, frequency-specific neurophysiological phenomena
 
 <div class="overview-card" style="margin-top: 10px;">
 <strong>Event-Related Desynchronization (ERD):</strong><br>
-During the imagination phase, local neural populations become highly active and desynchronized. This manifests as a localized decrease in power within the <span style="color:#64B5F6;">$\\mu$ (8–12 Hz)</span> and lower <span style="color:#64B5F6;">$\\beta$ (13–30 Hz)</span> bands over the contralateral motor cortex.
+During the imagination phase, local neural populations become highly active and desynchronized. This manifests as a localized decrease in power within the <span style="color:#64B5F6;">$\\\mu$ (8–12 Hz)</span> and lower <span style="color:#64B5F6;">$\\\beta$ (13–30 Hz)</span> bands over the contralateral motor cortex.
 </div>
 
 <div class="overview-card" style="border-left-color: #81C784;">
 <strong>Event-Related Synchronization (ERS):</strong><br>
-After the imagery ceases, a subsequent rebound (increase) in power occurs in the $\\beta$ band, representing cortical idling, neural network resetting, or active inhibition of the motor command.
+After the imagery ceases, a subsequent rebound (increase) in power occurs in the $\\\beta$ band, representing cortical idling, neural network resetting, or active inhibition of the motor command.
 </div>
 
 By capturing these transient dynamics across 64 high-resolution electrodes, this system achieves highly robust real-time intent decoding, crucial for neuroprosthetics, wheelchair control, and stroke rehabilitation therapies.
@@ -544,8 +687,8 @@ Translating raw EEG brainwaves into commands requires extracting patterns. Tradi
 <span class="overview-highlight" style="color: #F48FB1;">Advanced Signal Preprocessing Pipeline</span><br>
 Before entering the models, the raw continuous EEG data undergoes strict filtering:
 <ul class="spec-list" style="margin-top: 10px;">
-<li><strong>Bandpass Filtering (8–30 Hz):</strong> A zero-phase Butterworth filter isolates the $\\mu$ and $\\beta$ bands, discarding low-frequency drift and high-frequency muscle artifacts (EMG).</li>
-<li><strong>Z-Score Standardization:</strong> Each channel within a trial is independently normalized to zero mean and unit variance ($\\mu=0, \\sigma=1$). This stabilizes the gradient descent for the CNN-LSTM and equalizes the feature variance for MiniRocket.</li>
+<li><strong>Bandpass Filtering (8–30 Hz):</strong> A zero-phase Butterworth filter isolates the $\\\mu$ and $\\\beta$ bands, discarding low-frequency drift and high-frequency muscle artifacts (EMG).</li>
+<li><strong>Z-Score Standardization:</strong> Each channel within a trial is independently normalized to zero mean and unit variance ($\\\mu=0, \\sigma=1$). This stabilizes the gradient descent for the CNN-LSTM and equalizes the feature variance for MiniRocket.</li>
 </ul>
 </div>
 """, unsafe_allow_html=True)
@@ -566,23 +709,23 @@ Before entering the models, the raw continuous EEG data undergoes strict filteri
 <p style="color: #E0E0E0; font-size: 18px; line-height: 1.8; margin-bottom: 25px;">
 MiniRocket computes convolutional features at a fraction of the cost of deep networks by abandoning gradient descent for feature extraction.
 </p>
-<div style="background: rgba(0,0,0,0.3); padding: 25px; border-radius: 8px; border: 1px solid #333;">
+<div style="background: rgba(10,0,10,0.4); padding: 25px; border-radius: 8px; border: 1px solid rgba(82, 43, 91, 0.5);">
 <strong style="color: #CE93D8; font-size: 18px; display: block; margin-bottom: 10px;">Kernel Formulation:</strong>
 <ul style="color:#DFB6B2; font-size: 16px; line-height: 1.8; margin-bottom: 25px;">
 <li>Generates $10,000$ non-trainable, random convolutional kernels.</li>
-<li>Kernel lengths fixed to 9, using pre-defined weights $\\in \\{-1, 2\\}$.</li>
+<li>Kernel lengths fixed to 9, using pre-defined weights $\\\in \\{-1, 2\\}$.</li>
 <li>Exponentially spaced dilations to capture multiple receptive fields.</li>
 </ul>
 
 <strong style="color: #CE93D8; font-size: 18px; display: block; margin-bottom: 10px;">Feature Pooling (PPV):</strong>
 <ul style="color:#DFB6B2; font-size: 16px; line-height: 1.8; margin-bottom: 25px;">
 <li>Extracts only the Proportion of Positive Values (PPV) per feature map.</li>
-<li>Collapses the time dimension, yielding a sparse vector $\mathbf{x} \in \mathbb{R}^{10000}$.</li>
+<li>Collapses the time dimension, yielding a sparse vector $\\mathbf{x} \\in \\mathbb{R}^{10000}$.</li>
 </ul>
 
 <strong style="color: #CE93D8; font-size: 18px; display: block; margin-bottom: 10px;">Classifier: L2 Regularized Ridge</strong>
 <ul style="color:#DFB6B2; font-size: 16px; line-height: 1.8; margin-bottom: 0;">
-<li>Objective: $\\min_{\\mathbf{w}} ||\\mathbf{Xw} - \\mathbf{y}||_2^2 + \\alpha ||\\mathbf{w}||_2^2$</li>
+<li>Objective: $\\\min_{\\\mathbf{w}} ||\\\mathbf{Xw} - \\\mathbf{y}||_2^2 + \\alpha ||\\\mathbf{w}||_2^2$</li>
 <li>Solved analytically via Cholesky decomposition.</li>
 </ul>
 </div>
@@ -593,7 +736,7 @@ MiniRocket computes convolutional features at a fraction of the cost of deep net
 <p style="color: #E0E0E0; font-size: 18px; line-height: 1.8; margin-bottom: 25px;">
 A deep neural network combining hierarchical spatial filtering via CNNs with sequence modeling via recurrent LSTM cells.
 </p>
-<div style="background: rgba(0,0,0,0.3); padding: 25px; border-radius: 8px; border: 1px solid #333;">
+<div style="background: rgba(10,0,10,0.4); padding: 25px; border-radius: 8px; border: 1px solid rgba(82, 43, 91, 0.5);">
 <strong style="color: #81C784; font-size: 18px; display: block; margin-bottom: 10px;">Spatial Filtering (CNN block):</strong>
 <ul style="color:#DFB6B2; font-size: 16px; line-height: 1.8; margin-bottom: 25px;">
 <li><strong>Conv1D:</strong> 16 filters, kernel size 3, ReLU activation.</li>
@@ -603,14 +746,14 @@ A deep neural network combining hierarchical spatial filtering via CNNs with seq
 
 <strong style="color: #81C784; font-size: 18px; display: block; margin-bottom: 10px;">Temporal Modeling (LSTM block):</strong>
 <ul style="color:#DFB6B2; font-size: 16px; line-height: 1.8; margin-bottom: 25px;">
-<li><strong>LSTM Layer:</strong> 100 hidden units ($\mathbf{h}_t$) maintaining a cell state ($\mathbf{c}_t$) across time steps to model ERD/ERS temporal dynamics.</li>
+<li><strong>LSTM Layer:</strong> 100 hidden units ($\\mathbf{h}_t$) maintaining a cell state ($\\mathbf{c}_t$) across time steps to model ERD/ERS temporal dynamics.</li>
 </ul>
 
 <strong style="color: #81C784; font-size: 18px; display: block; margin-bottom: 10px;">Classification & Optimization:</strong>
 <ul style="color:#DFB6B2; font-size: 16px; line-height: 1.8; margin-bottom: 0;">
 <li><strong>Dense Layers:</strong> 100 $\\rightarrow$ 50 $\\rightarrow$ 4 (Softmax outputs).</li>
 <li><strong>Loss:</strong> Categorical Crossentropy.</li>
-<li><strong>Optimizer:</strong> Adam ($lr=0.001$, $\\beta_1=0.9$, $\\beta_2=0.999$).</li>
+<li><strong>Optimizer:</strong> Adam ($lr=0.001$, $\\\beta_1=0.9$, $\\\beta_2=0.999$).</li>
 </ul>
 </div>
 </div>
@@ -620,7 +763,7 @@ A deep neural network combining hierarchical spatial filtering via CNNs with seq
 <p style="color: #E0E0E0; font-size: 18px; line-height: 1.8; margin-bottom: 25px;">
 Because EEG data is notoriously noisy and prone to overfitting due to low signal-to-noise ratios (SNR), strict regularization and robust validation constraints are applied across both architectures.
 </p>
-<div style="background: rgba(0,0,0,0.3); padding: 25px; border-radius: 8px; border: 1px solid #333;">
+<div style="background: rgba(10,0,10,0.4); padding: 25px; border-radius: 8px; border: 1px solid rgba(82, 43, 91, 0.5);">
 <strong style="color: #FFCC80; font-size: 18px; display: block; margin-bottom: 10px;">Overfitting Prevention:</strong>
 <ul style="color:#DFB6B2; font-size: 16px; line-height: 1.8; margin-bottom: 25px;">
 <li><strong>CNN-LSTM Dropout:</strong> A high Dropout rate of $0.5$ is applied after the LSTM layer and the first Dense layer to randomly zero out activations, forcing the network to learn redundant representations.</li>
@@ -655,18 +798,17 @@ Because EEG data is notoriously noisy and prone to overfitting due to low signal
             st.markdown("""
 | Component | Specification | Mathematical Formulation |
 | :--- | :--- | :--- |
-| **Optimizer** | AdamW (Decoupled Weight Decay) | $\\theta_t = \\theta_{t-1} - \\eta_t \\Big(\\alpha \\frac{\\hat{m}_t}{\\sqrt{\\hat{v}_t} + \\epsilon} + \\lambda \\theta_{t-1}\\Big)$ |
-| **Learning Rate** | 1e-3 with Cosine Annealing | $\\eta_t = \\eta_{min} + \\frac{1}{2}(\\eta_{max} - \\eta_{min})(1 + \\cos(\\frac{T_{cur}}{T_{max}}\\pi))$ |
-| **Loss Function** | Categorical Crossentropy | $\\mathcal{L} = -\\frac{1}{N} \\sum_{i=1}^N \\sum_{c=1}^C y_{i,c} \\log(\\hat{y}_{i,c})$ |
+| **Optimizer** | AdamW (Decoupled Weight Decay) | $\\theta_t = \\theta_{t-1} - \\eta_t \\Big(\\alpha \\\frac{\\\hat{m}_t}{\\sqrt{\\\hat{v}_t} + \\epsilon} + \\lambda \\theta_{t-1}\\Big)$ |
+| **Learning Rate** | 1e-3 with Cosine Annealing | $\\eta_t = \\eta_{min} + \\\frac{1}{2}(\\eta_{max} - \\eta_{min})(1 + \\cos(\\\frac{T_{cur}}{T_{max}}\\pi))$ |
+| **Loss Function** | Categorical Crossentropy | $\\\mathcal{L} = -\\\frac{1}{N} \\\sum_{i=1}^N \\\sum_{c=1}^C y_{i,c} \\\log(\\\hat{y}_{i,c})$ |
 | **Regularization** | Dropout (p=0.5) & L2 Penalty | $\\lambda = 1e-4$ |
-| **Gradient Clipping** | Global Norm Scaling | $g \\leftarrow g \\frac{c}{\\|g\\|_2}$ if $\\|g\\|_2 > c$ |
+| **Gradient Clipping** | Global Norm Scaling | $g \\leftarrow g \\\frac{c}{\|g\|_2}$ if $\|g\|_2 > c$ |
 """)
 
             st.markdown("</div>", unsafe_allow_html=True)
             
             with st.expander("Show Keras Network Topology & Tensor Shapes"):
-                st.code('''
-Model: "hybrid_cnn_lstm"
+                topo_str = '''Model: "hybrid_cnn_lstm"
 _________________________________________________________________
  Layer (type)                Output Shape              Param #   
 =================================================================
@@ -684,8 +826,8 @@ _________________________________________________________________
 Total params: 63,110
 Trainable params: 63,110
 Non-trainable params: 0
-_________________________________________________________________
-                ''', language="text")
+_________________________________________________________________'''
+                st.markdown(render_cyber_terminal(topo_str), unsafe_allow_html=True)
 
             if st.button("▶ Initialize End-to-End Backpropagation", type="primary", use_container_width=True):
                 st.markdown('<hr style="border-color: rgba(255,255,255,0.1); margin: 30px 0;">', unsafe_allow_html=True)
@@ -715,7 +857,7 @@ _________________________________________________________________
                     
                 chart_col3, chart_col4 = st.columns(2)
                 with chart_col3:
-                    st.markdown("**Gradient Global Norm ($\\mathbf{\\|g\\|_2}$)**")
+                    st.markdown("**Gradient Global Norm ($\\\mathbf{\|g\|_2}$)**")
                     grad_chart = st.empty()
                 with chart_col4:
                     st.markdown("**Learning Rate**")
@@ -724,24 +866,7 @@ _________________________________________________________________
                 st.markdown("### Compute Node Terminal")
                 terminal = st.empty()
                 
-                def render_cyber_terminal(text):
-                    # Adds some glowing colors to specific keywords
-                    colored_text = text.replace("[SYSTEM]", "<span style='color:#DFB6B2; font-weight:bold;'>[SYSTEM]</span>")
-                    colored_text = colored_text.replace("loss:", "<span style='color:#854F6C;'>loss:</span>")
-                    colored_text = colored_text.replace("acc:", "<span style='color:#522B5B;'>acc:</span>")
-                    html = f"""
-                    <div style="background: #190019; backdrop-filter: blur(12px); border-radius: 8px; border: 1px solid rgba(82, 43, 91, 0.3); padding: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.5), inset 0 0 15px rgba(82, 43, 91, 0.05); font-family: 'Fira Code', 'Courier New', monospace; font-size: 13px; line-height: 1.6; overflow-y: auto; max-height: 400px;">
-                        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 10px;">
-                            <div style="width: 12px; height: 12px; border-radius: 50%; background: #FF5F56; box-shadow: 0 0 8px rgba(255,95,86,0.6);"></div>
-                            <div style="width: 12px; height: 12px; border-radius: 50%; background: #FFBD2E; box-shadow: 0 0 8px rgba(255,189,46,0.6);"></div>
-                            <div style="width: 12px; height: 12px; border-radius: 50%; background: #27C93F; box-shadow: 0 0 8px rgba(39,201,63,0.6);"></div>
-                            <span style="color: #854F6C; font-size: 12px; margin-left: 10px; letter-spacing: 1.5px; font-weight: 600; text-shadow: 0 0 5px rgba(78,227,200,0.4);">MI-BCI // NEURAL_ENGINE_TTY</span>
-                        </div>
-                        <div style="color: #FBE4D8; white-space: pre-wrap; font-family: inherit;">{colored_text}</div>
-                    </div>
-                    """
-                    return html
-                
+
                 df_loss = pd.DataFrame(columns=["Train Loss", "Val Loss"])
                 df_acc = pd.DataFrame(columns=["Train Acc", "Val Acc"])
                 df_grad = pd.DataFrame(columns=["Gradient Norm"])
@@ -763,6 +888,21 @@ _________________________________________________________________
                 
                 train_loader = DataLoader(train_dataset, batch_size=32, shuffle=True)
                 val_loader = DataLoader(val_dataset, batch_size=32, shuffle=False)
+                
+                st.markdown("### Raw Sensor Input Visualization")
+                st.markdown("Sample 1280-point trial tensor from batch before backpropagation.")
+                fig_raw = go.Figure()
+                fig_raw.add_trace(go.Scatter(y=train_dict["X"][0, 0, :], mode='lines', line=dict(color='#DFB6B2', width=1.5)))
+                fig_raw.update_layout(
+                    plot_bgcolor='#190019', paper_bgcolor='#190019',
+                    font=dict(color='#FBE4D8'),
+                    margin=dict(l=20, r=20, t=20, b=20),
+                    height=250,
+                    xaxis=dict(showgrid=True, gridcolor='#2B124C', title="Time Samples"),
+                    yaxis=dict(showgrid=True, gridcolor='#2B124C', title="Amplitude")
+                )
+                st.plotly_chart(fig_raw, use_container_width=True)
+
                 
                 log_str += "[SYSTEM] Instantiating PyTorch Hybrid CNN-LSTM Model...\n"
                 terminal.markdown(render_cyber_terminal(log_str), unsafe_allow_html=True)
@@ -858,28 +998,62 @@ _________________________________________________________________
                         terminal.markdown(render_cyber_terminal(log_str), unsafe_allow_html=True)
                 
                 st.success(f"Real Training Convergence achieved. Final Validation Accuracy: {val_acc:.2f}%. Model weights checkpointed.")
+                
+                # CNN-LSTM Advanced Metrics Expansion
+                st.markdown("### 🔬 Post-Training Advanced Analytics")
+                col_metrics1, col_metrics2 = st.columns(2)
+                
+                # Get final predictions for Val Set
+                trainer.model.eval()
+                all_preds = []
+                all_targets = []
+                with torch.no_grad():
+                    for batch_X, batch_y in val_loader:
+                        batch_X = batch_X.to(trainer.device)
+                        logits = trainer.model(batch_X)
+                        preds = torch.argmax(logits, dim=1)
+                        all_preds.extend(preds.cpu().numpy())
+                        all_targets.extend(batch_y.numpy())
+                
+                with col_metrics1:
+                    st.markdown("#### Confusion Matrix")
+                    cm = confusion_matrix(all_targets, all_preds)
+                    fig_cm, ax_cm = plt.subplots(figsize=(5, 4))
+                    sns.heatmap(cm, annot=True, fmt="d", cmap="Purples", ax=ax_cm, cbar=False)
+                    ax_cm.set_xlabel('Predicted Class')
+                    ax_cm.set_ylabel('True Class')
+                    ax_cm.set_title('CNN-LSTM Validation Set Predictions')
+                    st.pyplot(fig_cm)
+                    
+                with col_metrics2:
+                    st.markdown("#### Detailed Classification Report")
+                    report_dict = classification_report(all_targets, all_preds, output_dict=True, zero_division=0)
+                    df_report = pd.DataFrame(report_dict).transpose().round(2)
+                    st.dataframe(
+                        df_report.style.set_properties(**{'background-color': '#190019', 'color': '#FBE4D8'})
+                                     .set_table_styles([{'selector': 'th', 'props': [('background-color', '#2B124C'), ('color', '#DFB6B2')]}])
+                    )
 
         elif model_choice == "MiniRocket (Ridge Classifier)":
             st.markdown("""
-<div style="background: #190019; padding: 35px; border-radius: 12px; border: 1px solid rgba(133, 79, 108, 0.4); border-left: 6px solid #854F6C; margin-bottom: 20px; margin-top: 20px;">
+<div class="panel-card mr-accent" style="background: #190019; border: 1px solid rgba(82, 43, 91, 0.4); border-left: 6px solid #522B5B; padding: 40px; border-radius: 12px; margin-bottom: 40px;">
 <h4 style="color: #FBE4D8; margin-top: 0; margin-bottom: 25px; font-family: 'Space Grotesk', sans-serif; font-size: 22px;">Deterministic Feature Extraction Configuration</h4>
 """, unsafe_allow_html=True)
 
             st.markdown("""
 | Component | Specification | Mathematical Formulation |
 | :--- | :--- | :--- |
-| **Solver** | Cholesky Decomposition (Analytic) | $\\mathbf{w}^* = (\\mathbf{X}^T \\mathbf{X} + \\alpha \\mathbf{I})^{-1} \\mathbf{X}^T \\mathbf{y}$ |
-| **Feature Extraction** | Proportion of Positive Values (PPV) | $PPV = \\frac{1}{L} \\sum_{t=1}^L I(x_t > 0)$ |
-| **Loss Function** | Squared Hinge / L2 | $\\min_{\\mathbf{w}} \\|\\mathbf{Xw} - \\mathbf{y}\\|_2^2 + \\alpha \\|\\mathbf{w}\\|_2^2$ |
+| **Solver** | Cholesky Decomposition (Analytic) | $\\\mathbf{w}^* = (\\\mathbf{X}^T \\\mathbf{X} + \\alpha \\\mathbf{I})^{-1} \\\mathbf{X}^T \\\mathbf{y}$ |
+| **Feature Extraction** | Proportion of Positive Values (PPV) | $PPV = \\\frac{1}{L} \\\sum_{t=1}^L I(x_t > 0)$ |
+| **Loss Function** | Squared Hinge / L2 | $\\\min_{\\\mathbf{w}} \|\\\mathbf{Xw} - \\\mathbf{y}\|_2^2 + \\alpha \|\\\mathbf{w}\|_2^2$ |
 | **Regularization** | L2 Ridge Penalty | $\\alpha = 1.0$ (Tikhonov Regularization) |
-| **Kernel Dilation** | Exponentially Spaced | $d = \\lfloor 2^{x} \\rfloor, x \\in \\mathcal{U}(0, \\log_2(L_{max}))$ |
+| **Kernel Dilation** | Exponentially Spaced | $d = \\\lfloor 2^{x} \\rfloor, x \\\in \\\mathcal{U}(0, \\\log_2(L_{max}))$ |
 """)
 
             st.markdown("</div>", unsafe_allow_html=True)
             
             with st.expander("Show Ridge Regression Feature Transformation Topology"):
-                st.code('''
-Model: "minirocket_ridge"
+                topo_str = '''Model: "minirocket_ridge"
 _________________________________________________________________
  Step                        Output Shape              Param #   
 =================================================================
@@ -892,8 +1066,8 @@ Total params: 40,004 (Analytically Solved)
 Trainable params: 0 (No backpropagation)
 Non-trainable params: 0 (Deterministic)
 MACs (Multiply-Accumulates): ~3.2 Billion per forward pass
-_________________________________________________________________
-                ''', language="text")
+_________________________________________________________________'''
+                st.markdown(render_cyber_terminal(topo_str), unsafe_allow_html=True)
 
             if st.button("▶ Initialize Analytic Solver Sequence", type="primary", use_container_width=True):
                 st.markdown('<hr style="border-color: rgba(255,255,255,0.1); margin: 30px 0;">', unsafe_allow_html=True)
@@ -906,25 +1080,39 @@ _________________________________________________________________
                 
                 terminal = st.empty()
                 log_str = "[SYSTEM] Generating real synthetic EEG dataset (300 trials, 1 channel, 500 samples for sktime)...\n"
-                terminal.code(log_str, language="bash")
+                terminal.markdown(render_cyber_terminal(log_str), unsafe_allow_html=True)
                 
                 train_dict = generate_synthetic_eeg_dataset(num_subjects=1, trials_per_class=10, sample_length=1280, random_state=42)
                 val_dict = generate_synthetic_eeg_dataset(num_subjects=1, trials_per_class=4, sample_length=1280, random_state=999)
                 X_train, y_train = train_dict["X"], train_dict["y"]
                 X_test, y_test = val_dict["X"], val_dict["y"]
                 
+                st.markdown("### Raw Sensor Input Visualization")
+                st.markdown("Sample 1280-point trial matrix before PPV extraction.")
+                fig_raw = go.Figure()
+                fig_raw.add_trace(go.Scatter(y=train_dict["X"][0, 0, :], mode='lines', line=dict(color='#DFB6B2', width=1.5)))
+                fig_raw.update_layout(
+                    plot_bgcolor='#190019', paper_bgcolor='#190019',
+                    font=dict(color='#FBE4D8'),
+                    margin=dict(l=20, r=20, t=20, b=20),
+                    height=250,
+                    xaxis=dict(showgrid=True, gridcolor='#2B124C', title="Time Samples"),
+                    yaxis=dict(showgrid=True, gridcolor='#2B124C', title="Amplitude")
+                )
+                st.plotly_chart(fig_raw, use_container_width=True)
+
                 cond_metric.metric("Train Shape", f"{X_train.shape}", "")
                 rank_metric.metric("Num Classes", f"{len(set(y_train))}", "")
                 mem_metric.metric("Allocated Size", f"{X_train.nbytes / 1e6:.2f} MB", "")
                 
                 log_str += "[SYSTEM] Instantiating real MiniRocketPipeline (num_kernels=10000)...\n"
-                terminal.code(log_str, language="bash")
+                terminal.markdown(render_cyber_terminal(log_str), unsafe_allow_html=True)
                 
                 pipeline = MiniRocketPipeline(num_kernels=10000)
                 
                 log_str += "[SYSTEM] Spawning Kernels & Extracting Proportion of Positive Values (PPV)...\n"
                 log_str += "[SYSTEM] Applying Ridge Classifier (Solving X^T X + alpha I)...\n"
-                terminal.code(log_str, language="bash")
+                terminal.markdown(render_cyber_terminal(log_str), unsafe_allow_html=True)
                 
                 with st.spinner("Analytically solving Ridge Regression with real data..."):
                     start_time = time.perf_counter()
@@ -940,7 +1128,7 @@ _________________________________________________________________
                 mem_metric.metric("Solver Time", f"{fit_time:.2f} s", "-Fast", delta_color="normal")
                 
                 log_str += f"[SYSTEM] Real Analytic Solution Found in {fit_time:.2f}s.\n"
-                terminal.code(log_str, language="bash")
+                terminal.markdown(render_cyber_terminal(log_str), unsafe_allow_html=True)
                 
                 st.success(f"MiniRocket Ridge Classifier fitted successfully on real data! Final Validation Accuracy: {acc:.2f}%. Fast, deterministic, and analytically perfect.")
                 
@@ -1007,7 +1195,7 @@ _________________________________________________________________
             log_text = ""
             for log in logs:
                 log_text += f"{log}\n"
-                log_container.code(log_text, language="shell")
+                log_container.markdown(render_cyber_terminal(log_text), unsafe_allow_html=True)
             
             # Distinct random states to strictly avoid data leakage from overlapping windows
             train_dict = generate_synthetic_eeg_dataset(num_subjects=1, trials_per_class=25, sample_length=1280, random_state=42)
@@ -1026,7 +1214,7 @@ _________________________________________________________________
             
             log_text += "[SYSTEM] BATCH SIZE: 32 | LEARNING RATE: 1e-3 | OPTIMIZER: AdamW\n"
             log_text += "[SYSTEM] STARTING BACKPROPAGATION OVER 30 EPOCHS\n"
-            log_container.code(log_text, language="shell")
+            log_container.markdown(render_cyber_terminal(log_text), unsafe_allow_html=True)
             
             df_loss = pd.DataFrame(columns=["Train Loss", "Val Loss"])
             df_acc = pd.DataFrame(columns=["Train Acc", "Val Acc"])
@@ -1095,7 +1283,7 @@ _________________________________________________________________
                 
                 if epoch % 2 == 0 or epoch == 1:
                     log_text += f"EPOCH {epoch:3d}/30 | LOSS: {train_loss:.4f} | VAL_LOSS: {val_loss:.4f} | TRAIN_ACC: {train_acc:.1f}% | VAL_ACC: {val_acc:.1f}% | {epoch_time:.2f}s\n"
-                    log_container.code(log_text, language="shell")
+                    log_container.markdown(render_cyber_terminal(log_text), unsafe_allow_html=True)
                 
                 progress_bar.progress(epoch / 30.0)
                 
@@ -1141,6 +1329,11 @@ _________________________________________________________________
         st.markdown('<div class="kicker">Optimization Dynamics</div>', unsafe_allow_html=True)
         st.markdown('## Advanced Training Process Diagnostics')
         
+        terminal_container = st.empty()
+        log_txt = "[SYSTEM] INITIATING ADVANCED TRAINING PROCESS DIAGNOSTICS...\n"
+        log_txt += "[SYSTEM] EXTRACTING OPTIMIZATION SURFACES FROM PYTORCH COMPUTATIONAL GRAPH...\n"
+        terminal_container.markdown(render_cyber_terminal(log_txt), unsafe_allow_html=True)
+        
         # Run a real fast training loop on a small subset to extract REAL optimization surfaces
         with st.spinner("Extracting real optimization surfaces from PyTorch computational graph..."):
             dataset_dict = generate_synthetic_eeg_dataset(num_subjects=1, trials_per_class=15, sample_length=1280)
@@ -1157,6 +1350,10 @@ _________________________________________________________________
             
             model = HybridCNNLSTM(input_channels=1, sequence_length=1280, num_classes=4)
             trainer = DeepLearningTrainer(model, learning_rate=1e-3, l2_weight_decay=1e-4)
+            
+            log_txt += "[SYSTEM] ALLOCATING RESOURCES (CUDA/CPU). BATCH SIZE: 32\n"
+            log_txt += "[SYSTEM] STARTING MINI-BATCH GRADIENT DESCENT (10 EPOCHS)...\n"
+            terminal_container.markdown(render_cyber_terminal(log_txt), unsafe_allow_html=True)
             
             epochs = np.arange(1, 11)
             train_loss_list = []
@@ -1203,6 +1400,12 @@ _________________________________________________________________
                         correct += (preds == batch_y.to(trainer.device)).sum().item()
                 val_loss_list.append(v_loss / len(val_dataset))
                 val_acc_list.append((correct / len(val_dataset)) * 100.0)
+                
+                log_txt += f"EPOCH {epoch:2d}/{epochs[-1]} | loss: {train_loss_list[-1]:.4f} | VAL_LOSS: {val_loss_list[-1]:.4f} | acc: {val_acc_list[-1]:.1f}%\n"
+                terminal_container.markdown(render_cyber_terminal(log_txt), unsafe_allow_html=True)
+
+        log_txt += "[SYSTEM] TRAINING DIAGNOSTICS COMPLETE. EXTRACTING METRICS...\n"
+        terminal_container.markdown(render_cyber_terminal(log_txt), unsafe_allow_html=True)
 
         # --- Top KPIs ---
         cols = st.columns(4)
@@ -1242,6 +1445,39 @@ _________________________________________________________________
             fig4.update_layout(title='Gradient Norm Flow (Authentic)', paper_bgcolor='#190019', plot_bgcolor='#190019', font=dict(color='#FBE4D8'), margin=dict(l=20, r=20, t=40, b=20), xaxis=dict(title="Epochs", gridcolor='#2B124C'), yaxis=dict(title="L2 Norm", gridcolor='#2B124C'))
             st.plotly_chart(fig4, use_container_width=True)
 
+        st.markdown("<hr style='border-color: #2B124C; margin-top: 20px; margin-bottom: 20px;'>", unsafe_allow_html=True)
+        
+        # --- Weight Distribution Histogram ---
+        st.markdown("#### Model Parameter Space Distribution")
+        st.markdown("<p style='font-size:13px; color:#DFB6B2;'>KDE plot representing the statistical distribution of weights for Convolutional vs Recurrent layers.</p>", unsafe_allow_html=True)
+        
+        c5, c6 = st.columns([1, 2])
+        with c5:
+            st.markdown("<br><br>", unsafe_allow_html=True)
+            conv1_w = trainer.model.conv1.weight.detach().cpu().numpy().flatten()
+            lstm_w = trainer.model.lstm.weight_ih_l0.detach().cpu().numpy().flatten()
+            st.metric("Conv1 Weights Size", f"{len(conv1_w)}")
+            st.metric("LSTM Input Weights Size", f"{len(lstm_w)}")
+            
+        with c6:
+            import plotly.figure_factory as ff
+            hist_data = [conv1_w, lstm_w]
+            group_labels = ['Conv1D Weights', 'LSTM Weight (IH)']
+            fig5 = go.Figure()
+            fig5.add_trace(go.Histogram(x=conv1_w, name='Conv1D Weights', marker_color='#854F6C', opacity=0.75, histnorm='probability density'))
+            fig5.add_trace(go.Histogram(x=lstm_w, name='LSTM Weight (IH)', marker_color='#DFB6B2', opacity=0.75, histnorm='probability density'))
+            fig5.update_layout(barmode='overlay', title_font=dict(color='#E0E0E0'), paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', legend=dict(font=dict(color='#E0E0E0')))
+            fig5.update_layout(
+                paper_bgcolor='#190019', plot_bgcolor='#190019', font=dict(color='#FBE4D8'),
+                margin=dict(l=20, r=20, t=20, b=20),
+                legend=dict(yanchor="top", y=0.99, xanchor="right", x=0.99),
+                xaxis=dict(title="Weight Value", gridcolor='#2B124C'),
+                yaxis=dict(title="Density", gridcolor='#2B124C'),
+                height=300
+            )
+
+            st.plotly_chart(fig5, use_container_width=True)
+            
         st.markdown("<hr style='border-color: #2B124C; margin-top: 20px; margin-bottom: 20px;'>", unsafe_allow_html=True)
         
         # --- Authentic LSTM Activation Heatmap ---
@@ -1284,23 +1520,116 @@ _________________________________________________________________
     # 6. Preprocessing (t6)
     # -------------------------------------------------------------
     elif selected_tab == "⚙️ Preprocessing":
-        st.markdown('<div class="kicker">Data Prep</div>', unsafe_allow_html=True)
-        st.markdown('## Signal Preprocessing Pipeline')
+        st.markdown('<div class="kicker">Data Prep & Cleanse</div>', unsafe_allow_html=True)
+        st.markdown('## Advanced EEG Signal Processing Pipeline')
         
         st.markdown("""
-        <div class="panel-card" style="border-left: 4px solid #854F6C;">
-            <h3 style="color:#FBE4D8; font-size:16px;">1. Spectral Filtering (4–38 Hz)</h3>
-            <p style="color:#DFB6B2; font-size:13px; line-height:1.6; margin-top:8px;">Applying a 4th-order Butterworth bandpass filter to isolate μ (8–12 Hz) and β (13–30 Hz) sensorimotor rhythms, while heavily attenuating low-frequency drift and high-frequency EMG artifacts from muscle movement.</p>
-        </div>
-        <div class="panel-card" style="border-left: 4px solid #DFB6B2;">
-            <h3 style="color:#FBE4D8; font-size:16px;">2. Common Average Reference (CAR)</h3>
-            <p style="color:#DFB6B2; font-size:13px; line-height:1.6; margin-top:8px;">Subtracting the mean signal of all electrodes from each individual channel. This spatial filter drastically improves the signal-to-noise ratio by removing common mode noise spread across the scalp.</p>
-        </div>
-        <div class="panel-card" style="border-left: 4px solid #522B5B;">
-            <h3 style="color:#FBE4D8; font-size:16px;">3. Normalization (Z-Score)</h3>
-            <p style="color:#DFB6B2; font-size:13px; line-height:1.6; margin-top:8px;">Standardizing each continuous trial to have zero mean and unit variance. This is essential for stable convergence in the CNN-LSTM and ensures uniform feature weighting within the MiniRocket transform.</p>
-        </div>
+        <p style='color:#DFB6B2; font-size:14px; margin-bottom: 25px;'>
+        Motor Imagery (MI) signals are deeply buried in background physiological noise. We employ a rigorous, multi-stage spatial, spectral, and temporal transformation pipeline to maximize the Signal-to-Noise Ratio (SNR) before neural decoding.
+        </p>
         """, unsafe_allow_html=True)
+
+        st.markdown("### I. Algorithmic Processing Stages")
+
+        p_c1, p_c2, p_c3 = st.columns([1, 1, 1])
+        with p_c1:
+            st.markdown("""
+            <div class="panel-card" style="border-left: 4px solid #854F6C; height: 100%;">
+                <h3 style="color:#FBE4D8; font-size:15px; margin-bottom:10px;">1. Spectral Filtering</h3>
+                <p style="color:#DFB6B2; font-size:12px; line-height:1.5;">
+                4th-order zero-phase Butterworth bandpass filter isolating <b>4–38 Hz</b>.
+                Removes DC drift and 60Hz powerline noise, retaining the critical μ and β sensorimotor rhythms.
+                </p>
+                <div style="background: rgba(0,0,0,0.4); padding: 8px; border-radius: 4px; margin-top: 10px; font-family: monospace; font-size: 11px; color: #a196aa;">
+                H(jω) = 1 / √(1 + (ω/ω_c)^2n)
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
+            
+        with p_c2:
+            st.markdown("""
+            <div class="panel-card" style="border-left: 4px solid #DFB6B2; height: 100%;">
+                <h3 style="color:#FBE4D8; font-size:15px; margin-bottom:10px;">2. Spatial Filtering (CAR)</h3>
+                <p style="color:#DFB6B2; font-size:12px; line-height:1.5;">
+                Common Average Reference (CAR) mitigates widespread common-mode noise. The mean electrical potential of the scalp is subtracted from each target electrode.
+                </p>
+                <div style="background: rgba(0,0,0,0.4); padding: 8px; border-radius: 4px; margin-top: 10px; font-family: monospace; font-size: 11px; color: #a196aa;">
+                V_i'(t) = V_i(t) - (1/N) * Σ V_k(t)
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
+
+        with p_c3:
+            st.markdown("""
+            <div class="panel-card" style="border-left: 4px solid #522B5B; height: 100%;">
+                <h3 style="color:#FBE4D8; font-size:15px; margin-bottom:10px;">3. Normalization (Z-Score)</h3>
+                <p style="color:#DFB6B2; font-size:12px; line-height:1.5;">
+                Trial-level Z-Score standardization prevents scale-variance across subjects. Ensures that optimization gradients remain stable within the Hybrid CNN-LSTM.
+                </p>
+                <div style="background: rgba(0,0,0,0.4); padding: 8px; border-radius: 4px; margin-top: 10px; font-family: monospace; font-size: 11px; color: #a196aa;">
+                Z = (X - μ_trial) / σ_trial
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
+            
+        st.markdown("<br>", unsafe_allow_html=True)
+        
+        st.markdown("### II. Time-Frequency Analysis (STFT Spectrogram)")
+        st.markdown("<p style='font-size:13px; color:#DFB6B2;'>Short-Time Fourier Transform (STFT) reveals the dynamic frequency content of the motor execution trial over time.</p>", unsafe_allow_html=True)
+
+        # Generate a synthetic "raw" signal with noise and drift, then filter it
+        import scipy.signal # type: ignore
+        fs = 160 # 160Hz sampling rate
+        t_sec = np.linspace(0, 4, int(4 * fs)) # 4 seconds
+        
+        # Synthetic clean Mu rhythm (10 Hz) with an event related desynchronization (ERD) at t=2.0s
+        erd_envelope = np.where(t_sec > 2.0, 0.3, 1.0)
+        clean_signal = erd_envelope * np.sin(2 * np.pi * 10 * t_sec) + 0.5 * np.sin(2 * np.pi * 20 * t_sec)
+        
+        # Add high frequency noise (60Hz powerline, 100Hz EMG) and low freq drift (1Hz)
+        noise = 1.2 * np.sin(2 * np.pi * 60 * t_sec) + 0.5 * np.random.randn(len(t_sec)) + 2.0 * np.sin(2 * np.pi * 1 * t_sec)
+        raw_signal = clean_signal + noise
+        
+        # Apply 4th order Butterworth bandpass 4-38 Hz
+        b, a = scipy.signal.butter(4, [4, 38], btype='bandpass', fs=fs)
+        filtered_signal = scipy.signal.filtfilt(b, a, raw_signal)
+        
+        # Calculate Spectrogram
+        f_stft, t_stft, Zxx = scipy.signal.stft(filtered_signal, fs, nperseg=64, noverlap=32)
+        Zxx_mag = np.abs(Zxx)
+        
+        spec_c1, spec_c2 = st.columns([1, 1])
+        
+        with spec_c1:
+            fig_pre = go.Figure()
+            fig_pre.add_trace(go.Scatter(x=t_sec, y=raw_signal, mode='lines', name='Raw (Noisy)', line=dict(color='rgba(223, 182, 178, 0.4)', width=1)))
+            fig_pre.add_trace(go.Scatter(x=t_sec, y=filtered_signal, mode='lines', name='Filtered (4-38 Hz)', line=dict(color='#854F6C', width=2)))
+            
+            fig_pre.update_layout(
+                title="1D Temporal Filtering",
+                paper_bgcolor='#190019', plot_bgcolor='#190019', font=dict(color='#FBE4D8'),
+                margin=dict(l=20, r=20, t=40, b=20),
+                xaxis=dict(title="Time (s)", gridcolor='#2B124C'),
+                yaxis=dict(title="Amplitude (µV)", gridcolor='#2B124C'),
+                legend=dict(yanchor="top", y=0.99, xanchor="right", x=0.99)
+            )
+            st.plotly_chart(fig_pre, use_container_width=True)
+            
+        with spec_c2:
+            fig_spec = go.Figure(data=go.Heatmap(
+                z=Zxx_mag, x=t_stft, y=f_stft, colorscale='Magma', showscale=False
+            ))
+            fig_spec.update_layout(
+                title="2D Spectrogram (ERD Visualization)",
+                paper_bgcolor='#190019', plot_bgcolor='#190019', font=dict(color='#FBE4D8'),
+                margin=dict(l=20, r=20, t=40, b=20),
+                xaxis=dict(title="Time (s)", gridcolor='#2B124C'),
+                yaxis=dict(title="Frequency (Hz)", gridcolor='#2B124C', range=[0, 40])
+            )
+            # Add annotation for ERD
+            fig_spec.add_vline(x=2.0, line_dash="dash", line_color="#F48FB1", annotation_text="Motor Event (ERD)", annotation_position="top right")
+            
+            st.plotly_chart(fig_spec, use_container_width=True)
 
     # -------------------------------------------------------------
     # 7. Signal Analysis (t7)
