@@ -55,7 +55,7 @@ class DeepLearningTrainer:
         self.train_time_sec_ = 0.0
         self.best_model_state_ = None
 
-    def train_epoch(self, train_loader: DataLoader, use_mixup: bool = True, alpha: float = 0.2) -> Tuple[float, float]:
+    def train_epoch(self, train_loader: DataLoader, use_mixup: bool = False, alpha: float = 0.2) -> Tuple[float, float]:
         self.model.train()
         total_loss = 0.0
         correct = 0

@@ -38,10 +38,11 @@ class HybridCNNLSTM(nn.Module):
         self.conv1 = nn.Conv1d(
             in_channels=input_channels,
             out_channels=conv1_filters,
-            kernel_size=kernel_size,
+            kernel_size=3,
             stride=1,
             padding=0,
         )
+        self.bn1 = nn.BatchNorm1d(conv1_filters)
         self.relu1 = nn.ReLU()
 
         # Layer 3: Conv1D (32 filters, kernel size 3, stride 1, VALID padding, ReLU)
@@ -49,10 +50,11 @@ class HybridCNNLSTM(nn.Module):
         self.conv2 = nn.Conv1d(
             in_channels=conv1_filters,
             out_channels=conv2_filters,
-            kernel_size=kernel_size,
+            kernel_size=3,
             stride=1,
             padding=0,
         )
+        self.bn2 = nn.BatchNorm1d(conv2_filters)
         self.relu2 = nn.ReLU()
 
         # Layer 4: Dropout (0.5)
@@ -63,7 +65,7 @@ class HybridCNNLSTM(nn.Module):
         self.pool = nn.MaxPool1d(kernel_size=2, stride=1)
 
         # Layer 6: Adaptive sequence alignment for Layer 7 LSTM
-        self.adaptive_align = nn.AdaptiveAvgPool1d(lstm_timesteps)
+        self.adaptive_align = nn.AdaptiveMaxPool1d(lstm_timesteps)
 
         # --- ADVANCED PROTOTYPE UPGRADE: Self-Attention Mechanism ---
         # Adding a Multi-Head Attention layer to focus on salient temporal EEG features
@@ -102,8 +104,8 @@ class HybridCNNLSTM(nn.Module):
         if x.dim() == 2:
             x = x.unsqueeze(1)
 
-        out = self.relu1(self.conv1(x))
-        out = self.relu2(self.conv2(out))
+        out = self.relu1(self.bn1(self.conv1(x)))
+        out = self.relu2(self.bn2(self.conv2(out)))
         out = self.dropout_conv(out)
         out = self.pool(out)
 

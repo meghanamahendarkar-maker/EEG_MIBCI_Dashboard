@@ -28,7 +28,7 @@ class EEGPreprocessor:
         beta_band: Tuple[float, float] = (14.0, 30.0),
         use_ica: bool = True,
         ica_components: int = 15,
-        samples_per_trial: int = 9,
+        samples_per_trial: int = 40,
         sample_length: int = 1280,
     ):
         self.raw_fs = raw_fs
@@ -267,6 +267,8 @@ class EEGPreprocessor:
 
                 # Serially connect: [left, right] -> length 1280
                 sample = np.concatenate([resamp_l, resamp_r])
+                # Standardize sample to zero-mean, unit-variance to fix DL training convergence
+                sample = (sample - np.mean(sample)) / (np.std(sample) + 1e-8)
                 all_samples.append(sample)
                 all_labels.append(trial_label)
                 all_subjs.append(subject_id)
