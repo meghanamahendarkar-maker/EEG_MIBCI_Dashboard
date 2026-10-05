@@ -2,6 +2,7 @@ README.md
 pyproject.toml
 src/__init__.py
 src/app/app.py
+src/app/inference_tab.py
 src/data/__init__.py
 src/data/dataset.py
 src/data/loader.py
@@ -24,6 +25,9 @@ src/models/minirocket_pipeline.py
 src/training/__init__.py
 src/training/trainer_dl.py
 src/training/trainer_rocket.py
+src/utils/physionet_mapping.py
+src/utils/trial_extractor.py
 tests/test_cnn_lstm.py
+tests/test_inference.py
 tests/test_minirocket.py
 tests/test_preprocessing.py

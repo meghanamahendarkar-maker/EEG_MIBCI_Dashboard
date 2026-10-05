@@ -60,18 +60,17 @@ class HybridCNNLSTM(nn.Module):
         # Layer 4: Dropout (0.5)
         self.dropout_conv = nn.Dropout(dropout_conv)
 
-        # Layer 5: Max Pooling 1D (pool size 2, stride 1, VALID padding)
-        # 1276 -> 1275
-        self.pool = nn.MaxPool1d(kernel_size=2, stride=1)
+        # Layer 5: Max Pooling 1D (pool size 2, stride 2, VALID padding)
+        # 1276 -> 638
+        self.pool = nn.MaxPool1d(kernel_size=2, stride=2)
 
-        # Layer 6: Adaptive sequence alignment for Layer 7 LSTM
-        self.adaptive_align = nn.AdaptiveMaxPool1d(lstm_timesteps)
+        # Removed AdaptiveMaxPool1d to prevent destroying high-frequency temporal data
 
         # --- ADVANCED PROTOTYPE UPGRADE: Self-Attention Mechanism ---
         # Adding a Multi-Head Attention layer to focus on salient temporal EEG features
         self.attention = nn.MultiheadAttention(embed_dim=conv2_filters, num_heads=4, batch_first=True)
 
-        # Layer 7: LSTM (100 units, sequence length = 62, batch_first=True)
+        # Layer 7: LSTM (100 units)
         self.lstm = nn.LSTM(
             input_size=conv2_filters,
             hidden_size=lstm_units,
@@ -108,8 +107,6 @@ class HybridCNNLSTM(nn.Module):
         out = self.relu2(self.bn2(self.conv2(out)))
         out = self.dropout_conv(out)
         out = self.pool(out)
-
-        out = self.adaptive_align(out)
         out = out.permute(0, 2, 1)
 
         # --- ADVANCED PROTOTYPE UPGRADE: Apply Self-Attention ---

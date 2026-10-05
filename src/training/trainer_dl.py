@@ -29,7 +29,19 @@ class DeepLearningTrainer:
         early_stopping_patience: int = 15,
     ):
         if device is None:
-            self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+            if torch.cuda.is_available():
+                self.device = torch.device("cuda")
+            elif hasattr(torch, "xpu") and torch.xpu.is_available():
+                self.device = torch.device("xpu")
+            else:
+                try:
+                    import torch_directml  # type: ignore
+                    if torch_directml.is_available():
+                        self.device = torch_directml.device()
+                    else:
+                        self.device = torch.device("cpu")
+                except ImportError:
+                    self.device = torch.device("cpu")
         else:
             self.device = torch.device(device)
 

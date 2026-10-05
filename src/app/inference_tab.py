@@ -84,14 +84,23 @@ def render_inference_tab(mr_pipe, cnn_lstm, X_test, y_test, classes):
         if uploaded_file is not None and (st.session_state.get('filename') != uploaded_file.name):
             try:
                 import tempfile
+                import os
                 with tempfile.NamedTemporaryFile(delete=False, suffix='.edf') as tmp:
                     tmp.write(uploaded_file.getvalue())
                     tmp_path = tmp.name
+                
                 raw = mne.io.read_raw_edf(tmp_path, preload=True, verbose=False)
                 extractor = TrialExtractor(tmin=0.0, tmax=4.0)
                 st.session_state['trials'] = extractor.extract_trials_from_raw(raw, uploaded_file.name)
                 st.session_state['filename'] = uploaded_file.name
                 st.session_state.inference_run = False  # Reset on new file
+                
+                del raw
+                try:
+                    os.remove(tmp_path)
+                except Exception:
+                    pass
+                    
                 st.success(f"Loaded {uploaded_file.name}. Found {len(st.session_state['trials'])} trials.")
             except Exception as e:
                 st.error(f"Error parsing file: {e}")

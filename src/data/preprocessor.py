@@ -233,14 +233,9 @@ class EEGPreprocessor:
 
         for t_idx in range(n_trials):
             trial_label = labels[t_idx]
-            # Primary electrode pair: C3/C4 (or first resolved pair)
-            l_idx, r_idx = pair_indices[0]
-            left_ch = cleaned[t_idx, l_idx]
-            right_ch = cleaned[t_idx, r_idx]
-
             # We produce 9 samples per trial:
-            # Replicate the paper's representation where symmetric pair is serially connected
-            # Each electrode has 640 points -> total sample length = 1280 points.
+            # Replicate the paper's representation where symmetric pairs are serially connected
+            # 5 pairs * 2 electrodes = 10 channels. 10 * 128 points = 1280 points.
             window_size = 128  # 1-second segment at 128 Hz
             max_start = max(0, n_times - window_size)
             step = max_start // (self.samples_per_trial - 1) if self.samples_per_trial > 1 else 0
@@ -249,24 +244,14 @@ class EEGPreprocessor:
                 start = min(s * step, max_start)
                 end = start + window_size
 
-                seg_l = left_ch[start:end]
-                seg_r = right_ch[start:end]
+                # Collect segments for all 5 pairs
+                segments = []
+                for l_idx, r_idx in pair_indices:
+                    segments.append(cleaned[t_idx, l_idx, start:end])
+                    segments.append(cleaned[t_idx, r_idx, start:end])
 
-                # Resample / interpolate each electrode's segment to 640 points
-                pts_target = 640
-                resamp_l = np.interp(
-                    np.linspace(0, 1, pts_target),
-                    np.linspace(0, 1, len(seg_l)),
-                    seg_l
-                )
-                resamp_r = np.interp(
-                    np.linspace(0, 1, pts_target),
-                    np.linspace(0, 1, len(seg_r)),
-                    seg_r
-                )
-
-                # Serially connect: [left, right] -> length 1280
-                sample = np.concatenate([resamp_l, resamp_r])
+                # Serially connect: 10 segments of 128 points -> length 1280
+                sample = np.concatenate(segments)
                 # Standardize sample to zero-mean, unit-variance to fix DL training convergence
                 sample = (sample - np.mean(sample)) / (np.std(sample) + 1e-8)
                 all_samples.append(sample)

@@ -11,9 +11,9 @@ import matplotlib.pyplot as plt
 import streamlit as st
 import tempfile
 import mne
-import plotly.graph_objects as go
-from streamlit_option_menu import option_menu
-import seaborn as sns
+import plotly.graph_objects as go  # type: ignore
+from streamlit_option_menu import option_menu  # type: ignore
+import seaborn as sns  # type: ignore
 
 # Add workspace to path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
@@ -25,14 +25,15 @@ from src.models.cnn_lstm import HybridCNNLSTM
 from src.models.fusion import ChoquetIntegralFusion
 from sklearn.linear_model import RidgeClassifierCV
 import torch
+import torch.utils.data
 from torch.utils.data import TensorDataset, DataLoader
 from src.training.trainer_dl import DeepLearningTrainer
 from sklearn.metrics import confusion_matrix, classification_report, precision_recall_fscore_support
-import plotly.figure_factory as ff
-import scipy.signal
-import scipy.stats
+import plotly.figure_factory as ff  # type: ignore
+import scipy.signal  # type: ignore
+import scipy.stats  # type: ignore
 import platform
-import psutil
+import psutil  # type: ignore
 import importlib
 from sklearn.metrics import roc_curve, auc, cohen_kappa_score, matthews_corrcoef, precision_recall_curve, average_precision_score, log_loss, brier_score_loss
 from sklearn.preprocessing import label_binarize
@@ -350,6 +351,7 @@ def load_models_v3():
         # Fallback if checkpoint doesn't exist
         mr_pipe = MiniRocketPipeline(num_kernels=1000)
     
+    import src.models.cnn_lstm
     importlib.reload(src.models.cnn_lstm)
     
     # Load CNN-LSTM
@@ -802,9 +804,16 @@ Because EEG data is notoriously noisy and highly susceptible to catastrophic ove
                 log_str += "[SYSTEM] Model loaded to Compute Node. Starting Backpropagation...\n"
                 terminal.markdown(render_diagnostic_log(log_str), unsafe_allow_html=True)
                 
+                device_str = str(trainer.device).upper()
+                if "XPU" in device_str:
+                    hw_util.metric("Device", "Intel XPU")
+                elif "PRIVATEUSEONE" in device_str or "DML" in device_str:
+                    hw_util.metric("Device", "DirectML")
+                else:
+                    hw_util.metric("Device", "CUDA" if torch.cuda.is_available() else "CPU")
+                
                 vram_gb = torch.cuda.memory_allocated() / 1e9 if torch.cuda.is_available() else 0.0
-                hw_vram.metric("VRAM Usage", f"{vram_gb:.2f} GB")
-                hw_util.metric("Device", "CUDA" if torch.cuda.is_available() else "CPU")
+                hw_vram.metric("VRAM Usage", f"{vram_gb:.2f} GB" if torch.cuda.is_available() else "N/A")
                 hw_temp.metric("Active Threads", f"{torch.get_num_threads()}")
                 hw_pwr.metric("Backend", "PyTorch Native")
                 
@@ -903,11 +912,12 @@ Because EEG data is notoriously noisy and highly susceptible to catastrophic ove
                     st.markdown("#### Confusion Matrix")
                     cm = confusion_matrix(all_targets, all_preds)
                     fig_cm, ax_cm = plt.subplots(figsize=(5, 4))
-                    sns.heatmap(cm, annot=True, fmt="d", cmap="Purples", ax=ax_cm, cbar=False)
+                    sns.heatmap(cm, annot=True, fmt="d", cmap="Purples", ax=ax_cm, cbar=False)  # type: ignore
                     ax_cm.set_xlabel('Predicted Class')
                     ax_cm.set_ylabel('True Class')
                     ax_cm.set_title('CNN-LSTM Validation Set Predictions')
                     st.pyplot(fig_cm)
+                    plt.close(fig_cm)
                     
                 with col_metrics2:
                     st.markdown("#### Detailed Classification Report")
@@ -997,7 +1007,7 @@ Because EEG data is notoriously noisy and highly susceptible to catastrophic ove
         
         st.markdown("### Console Output")
         log_container = st.empty()
-        progress_bar = st.progress(0)
+        progress_container = st.empty()
         
         if st.button("Initialize Advanced Training Sequence", type="primary"):
             logs = ["[SYSTEM] INITIALIZING HYBRID CNN-LSTM...",
@@ -1101,10 +1111,15 @@ Because EEG data is notoriously noisy and highly susceptible to catastrophic ove
                     log_text += f"EPOCH {epoch:3d}/30 | LOSS: {train_loss:.4f} | VAL_LOSS: {val_loss:.4f} | TRAIN_ACC: {train_acc:.1f}% | VAL_ACC: {val_acc:.1f}% | {epoch_time:.2f}s\n"
                     log_container.markdown(render_diagnostic_log(log_text), unsafe_allow_html=True)
                 
-                progress_bar.progress(epoch / 30.0)
+                progress_html = f"""
+                <div style="width: 100%; background-color: #2B124C; border-radius: 8px; margin-top: 10px; border: 1px solid #522B5B; overflow: hidden; box-shadow: inset 0 1px 3px rgba(0,0,0,0.5);">
+                    <div style="width: {(epoch/30.0)*100}%; background: linear-gradient(90deg, #522B5B, #854F6C, #DFB6B2); height: 16px; border-radius: 8px; transition: width 0.3s ease; box-shadow: 0 0 10px rgba(223, 182, 178, 0.4);"></div>
+                </div>
+                """
+                progress_container.markdown(progress_html, unsafe_allow_html=True)
                 
             log_text += "\n[SYSTEM] TRAINING COMPLETE. SAVING WEIGHTS TO checkpoints/cnn_lstm_v3.pt"
-            log_container.code(log_text, language="shell")
+            log_container.markdown(render_diagnostic_log(log_text), unsafe_allow_html=True)
             st.success(f"Real Training Sequence Complete. Final Validation Accuracy: {val_acc:.2f}%. Model weights saved.")
             
             # Post-training advanced evaluation
@@ -1126,11 +1141,12 @@ Because EEG data is notoriously noisy and highly susceptible to catastrophic ove
                 st.markdown("#### Confusion Matrix")
                 cm = confusion_matrix(all_targets, all_preds)
                 fig_cm, ax_cm = plt.subplots(figsize=(5, 4))
-                sns.heatmap(cm, annot=True, fmt="d", cmap="Purples", ax=ax_cm, cbar=False)
+                sns.heatmap(cm, annot=True, fmt="d", cmap="Purples", ax=ax_cm, cbar=False)  # type: ignore
                 ax_cm.set_xlabel('Predicted Class')
                 ax_cm.set_ylabel('True Class')
                 ax_cm.set_title('CNN-LSTM Validation Set Predictions')
                 st.pyplot(fig_cm)
+                plt.close(fig_cm)
                 
             with col_metrics2:
                 st.markdown("#### Detailed Classification Report")
@@ -1598,8 +1614,8 @@ Because EEG data is notoriously noisy and highly susceptible to catastrophic ove
                 b_mu, a_mu = scipy.signal.butter(4, [8, 12], btype='bandpass', fs=160)
                 mu_l = scipy.signal.filtfilt(b_mu, a_mu, flat_left)
                 mu_r = scipy.signal.filtfilt(b_mu, a_mu, flat_right)
-                env_smooth_l = scipy.signal.filtfilt(*scipy.signal.butter(2, 2, btype='lowpass', fs=160), np.abs(scipy.signal.hilbert(mu_l)))
-                env_smooth_r = scipy.signal.filtfilt(*scipy.signal.butter(2, 2, btype='lowpass', fs=160), np.abs(scipy.signal.hilbert(mu_r)))
+                env_smooth_l = scipy.signal.filtfilt(*scipy.signal.butter(2, 2, btype='lowpass', fs=160), np.abs(scipy.signal.hilbert(mu_l)))  # type: ignore
+                env_smooth_r = scipy.signal.filtfilt(*scipy.signal.butter(2, 2, btype='lowpass', fs=160), np.abs(scipy.signal.hilbert(mu_r)))  # type: ignore
                 
                 fig_hilbert = go.Figure()
                 fig_hilbert.add_trace(go.Scatter(x=t_axis, y=env_smooth_l, mode='lines', name='Left Fist', line=dict(color='#F48FB1', width=3)))
@@ -1678,7 +1694,7 @@ Because EEG data is notoriously noisy and highly susceptible to catastrophic ove
             fig_mr_cm = go.Figure(data=go.Heatmap(
                 z=mr_cm_raw * 100, x=classes, y=classes,
                 colorscale=[[0, '#190019'], [0.5, '#854F6C'], [1, '#F48FB1']],
-                text=np.round(mr_cm_raw * 100, 1).astype(str),
+                text=np.round(mr_cm_raw * 100, 1).astype(str),  # type: ignore
                 texttemplate='%{text}%', textfont=dict(size=13, color='white'),
                 showscale=True, colorbar=dict(title='%', len=0.8)
             ))
@@ -1696,7 +1712,7 @@ Because EEG data is notoriously noisy and highly susceptible to catastrophic ove
             fig_cl_cm = go.Figure(data=go.Heatmap(
                 z=cl_cm_raw * 100, x=classes, y=classes,
                 colorscale=[[0, '#190019'], [0.5, '#522B5B'], [1, '#DFB6B2']],
-                text=np.round(cl_cm_raw * 100, 1).astype(str),
+                text=np.round(cl_cm_raw * 100, 1).astype(str),  # type: ignore
                 texttemplate='%{text}%', textfont=dict(size=13, color='white'),
                 showscale=True, colorbar=dict(title='%', len=0.8)
             ))
@@ -2317,12 +2333,12 @@ Because EEG data is notoriously noisy and highly susceptible to catastrophic ove
             centroid = np.mean(X_test[mask].reshape(np.sum(mask), -1), axis=0)
             centroids.append(centroid)
         centroids = np.array(centroids)
-        sim_matrix = cosine_similarity(centroids)
+        sim_matrix = cosine_similarity(centroids)  # type: ignore
         
         fig_sim = go.Figure(data=go.Heatmap(
             z=sim_matrix, x=classes, y=classes,
             colorscale=[[0, '#190019'], [0.5, '#854F6C'], [1, '#F48FB1']],
-            text=np.round(sim_matrix, 3).astype(str),
+            text=np.round(sim_matrix, 3).astype(str),  # type: ignore
             texttemplate='%{text}', textfont=dict(size=13, color='white'),
             showscale=True, colorbar=dict(title='Cosine', len=0.8)
         ))
@@ -2658,29 +2674,33 @@ Because EEG data is notoriously noisy and highly susceptible to catastrophic ove
             st.button("View Final Report")
 
 if __name__ == "__main__":
+    import tracemalloc
+    import logging
+    
+    if not tracemalloc.is_tracing():
+        tracemalloc.start()
+        
     main()
 
-
-# Force reload
-
-# Force reload 2
-
-# Force reload 3
-
-# Force reload 4
-
-# Force reload 5
-
-# Force reload 6
-
-# Force reload 7
-
-# Force reload 8
-
-# Force reload 9
-
-# Force reload 10
-
-# Force reload 11
-
-# Force reload 12
+    # Explicit memory cleanup and profiling
+    import gc
+    import matplotlib.pyplot as plt
+    
+    plt.close('all')
+    
+    try:
+        import torch
+        if torch.cuda.is_available():
+            torch.cuda.empty_cache()
+    except ImportError:
+        pass
+        
+    gc.collect()
+    
+    # Take memory snapshot
+    snapshot = tracemalloc.take_snapshot()
+    top_stats = snapshot.statistics('lineno')
+    
+    print("[Memory Profile] Top 5 allocations:")
+    for stat in top_stats[:5]:
+        print(stat)
